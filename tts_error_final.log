@@ -1,0 +1,55 @@
+TTS API Error: {
+  "error": {
+    "code": 403,
+    "message": "Requests to this API texttospeech.googleapis.com method google.cloud.texttospeech.v1.TextToSpeech.SynthesizeSpeech are blocked.",
+    "status": "PERMISSION_DENIED",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+        "reason": "API_KEY_SERVICE_BLOCKED",
+        "domain": "googleapis.com",
+        "metadata": {
+          "consumer": "projects/89436852438",
+          "apiName": "texttospeech.googleapis.com",
+          "methodName": "google.cloud.texttospeech.v1.TextToSpeech.SynthesizeSpeech",
+          "service": "texttospeech.googleapis.com"
+        }
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.LocalizedMessage",
+        "locale": "en-US",
+        "message": "Requests to this API texttospeech.googleapis.com method google.cloud.texttospeech.v1.TextToSpeech.SynthesizeSpeech are blocked."
+      }
+    ]
+  }
+}
+
+Error: TTS API Error: {
+  "error": {
+    "code": 403,
+    "message": "Requests to this API texttospeech.googleapis.com method google.cloud.texttospeech.v1.TextToSpeech.SynthesizeSpeech are blocked.",
+    "status": "PERMISSION_DENIED",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+        "reason": "API_KEY_SERVICE_BLOCKED",
+        "domain": "googleapis.com",
+        "metadata": {
+          "consumer": "projects/89436852438",
+          "apiName": "texttospeech.googleapis.com",
+          "methodName": "google.cloud.texttospeech.v1.TextToSpeech.SynthesizeSpeech",
+          "service": "texttospeech.googleapis.com"
+        }
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.LocalizedMessage",
+        "locale": "en-US",
+        "message": "Requests to this API texttospeech.googleapis.com method google.cloud.texttospeech.v1.TextToSpeech.SynthesizeSpeech are blocked."
+      }
+    ]
+  }
+}
+
+    at generateSpeech (file:///C:/appnode/src/services/geminiService.js:313:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async testTTS (file:///C:/appnode/test_tts.js:8:29)

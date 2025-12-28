@@ -1,0 +1,10 @@
+venv/
+__pycache__/
+*.pyc
+.env
+.DS_Store
+instance/
+.vscode/
+static/uploads/
+!static/uploads/.gitkeep
+node_modules/

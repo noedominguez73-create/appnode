@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tu Nuevo Look - Mirror IA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;700&display=swap');
+
+        .animate-fade-in-down {
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        .animate-fade-in-up {
+            animation: fadeInUp 0.8s ease-out backwards;
+        }
+
+        .animate-zoom-in {
+            animation: zoomIn 0.8s ease-out backwards;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes zoomIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-black text-white">
+
+    <div
+        class="min-h-screen bg-black text-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
+
+        <!-- Background Effects -->
+        <div class="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
+            <div
+                class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-600 rounded-full mix-blend-screen filter blur-[120px] opacity-20 animate-pulse">
+            </div>
+            <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-600 rounded-full mix-blend-screen filter blur-[120px] opacity-20 animate-pulse"
+                style="animation-delay: 2s;"></div>
+        </div>
+
+        <div class="z-10 w-full max-w-4xl flex flex-col items-center gap-8">
+
+            <!-- Header -->
+            <header class="text-center animate-fade-in-down">
+                <h1 class="text-5xl md:text-7xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00ff88] to-[#00ccff] mb-4"
+                    style="font-family: 'Outfit', sans-serif;">
+                    TU NUEVO LOOK
+                </h1>
+                <p class="text-gray-400 text-lg">Aquí comienza tu transformación</p>
+            </header>
+
+            <!-- Image Container -->
+            <div
+                class="relative group w-full aspect-[4/5] md:aspect-video max-h-[70vh] bg-gray-900/50 rounded-3xl border border-gray-800 overflow-hidden shadow-2xl backdrop-blur-sm animate-zoom-in">
+                <img id="finalImage" src="" alt="Tu Resultado" class="w-full h-full object-contain" />
+
+                <!-- Loading State (hidden by default) -->
+                <div id="loadingState" class="absolute inset-0 flex items-center justify-center bg-black/80 z-20">
+                    <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#00ff88]"></div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex flex-wrap gap-4 justify-center w-full animate-fade-in-up" style="animation-delay: 0.3s;">
+                <a href="/mirror"
+                    class="px-8 py-4 rounded-full bg-gray-800 hover:bg-gray-700 text-white font-semibold transition-all hover:scale-105 flex items-center gap-2">
+                    <i class="fas fa-arrow-left"></i> Volver a Intentar
+                </a>
+
+                <button onclick="downloadImage()"
+                    class="px-8 py-4 rounded-full bg-gradient-to-r from-[#00ff88] to-[#00ccff] text-black font-bold shadow-[0_0_20px_rgba(0,255,136,0.3)] hover:shadow-[0_0_30px_rgba(0,255,136,0.5)] transition-all hover:scale-105 flex items-center gap-2">
+                    <i class="fas fa-download"></i> Guardar Foto
+                </button>
+            </div>
+
+            <!-- INLINE QR CODE SECTION -->
+            <div class="flex flex-col items-center mt-12 animate-fade-in-up" style="animation-delay: 0.5s;">
+
+                <h3 class="text-3xl md:text-4xl font-bold text-center mb-6" style="font-family: 'Outfit', sans-serif; 
+                           background: linear-gradient(to right, #00ff88, #00ccff); 
+                           -webkit-background-clip: text; 
+                           -webkit-text-fill-color: transparent;
+                           filter: drop-shadow(0 0 10px rgba(0,255,136,0.3));">
+                    Escanea para Compartir
+                </h3>
+
+                <div id="qrcode"
+                    class="p-4 bg-white rounded-2xl shadow-[0_0_40px_rgba(0,255,136,0.2)] border-2 border-[#00ff88]/50 hover:scale-105 transition-transform duration-300">
+                    <!-- QR Generated Here automatically -->
+                </div>
+
+                <p class="text-gray-500 text-sm mt-4 tracking-wider">TU NUEVO LOOK EN TU MÓVIL</p>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Removed Modal -->
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Get URL params
+            const params = new URLSearchParams(window.location.search);
+            const imgUrl = params.get('img');
+            const imgElement = document.getElementById('finalImage');
+            const loading = document.getElementById('loadingState');
+
+            if (imgUrl) {
+                // Decode potential URL encoding
+                const decodedUrl = decodeURIComponent(imgUrl);
+                imgElement.src = decodedUrl;
+                imgElement.onload = () => {
+                    loading.style.display = 'none';
+                    generateInlineQR(); // Generate automatically on load
+                };
+                imgElement.onerror = () => {
+                    loading.innerHTML = '<p class="text-red-500">Error cargando la imagen</p>';
+                };
+            } else {
+                loading.innerHTML = '<p class="text-gray-500">No se encontró imagen.</p>';
+            }
+        });
+
+        function downloadImage() {
+            const img = document.getElementById('finalImage');
+            if (img.src) {
+                const a = document.createElement('a');
+                a.href = img.src;
+                a.download = 'mi-nuevo-look-mirror-ia.png';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+        }
+
+        function generateInlineQR() {
+            const container = document.getElementById('qrcode');
+            container.innerHTML = "";
+            new QRCode(container, {
+                text: window.location.href,
+                width: 128,  // Smaller size as requested (looks like ~100-150px in mockup)
+                height: 128,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.M
+            });
+        }
+    </script>
+</body>
+
+</html>

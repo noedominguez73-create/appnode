@@ -1,0 +1,1428 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración - Mirror IA</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #0f1016;
+            color: white;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #1a1b26;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #3d4052;
+            border-radius: 3px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #4e5166;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen p-8 flex justify-center items-start relative">
+    <!-- Top Right Nav -->
+    <div class="absolute top-8 right-8 flex gap-4 z-50">
+        <a href="/mirror"
+            class="bg-white/10 border border-gray-600 text-gray-400 hover:text-white hover:bg-white/20 hover:border-white transition rounded-full px-5 py-2 flex items-center gap-2 text-sm font-medium backdrop-blur-sm">
+            <i class="fas fa-arrow-left"></i> Volver al Espejo
+        </a>
+        <a href="/api/mirror/control-pantalla"
+            class="bg-white/10 border border-gray-600 text-gray-400 hover:text-[#00ff88] hover:bg-white/20 hover:border-[#00ff88] transition rounded-full px-5 py-2 flex items-center gap-2 text-sm font-medium backdrop-blur-sm">
+            <i class="fas fa-desktop"></i> Control Pantalla
+        </a>
+    </div>
+
+    <div class="bg-[#1a1b26] border border-gray-700 rounded-xl w-full max-w-4xl shadow-2xl">
+
+        <!-- Header -->
+        <div class="flex justify-between items-center p-6 border-b border-gray-700">
+            <h2 class="text-[#FFD700] text-xl font-bold tracking-wide">PANEL DE ADMINISTRACIÓN</h2>
+
+        </div>
+
+        <div class="p-8 space-y-8">
+
+            <!-- Section 1: Reporte de Uso Mensual (Redesigned) -->
+            <div
+                class="bg-gradient-to-br from-[#1a1b26] to-[#242636] p-8 rounded-2xl border border-gray-700 shadow-xl relative overflow-hidden group">
+                <!-- Decorative background glow -->
+                <div
+                    class="absolute top-0 right-0 w-64 h-64 bg-[#FFD700] opacity-5 blur-[100px] rounded-full pointer-events-none">
+                </div>
+
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 relative z-10">
+                    <div>
+                        <h3 class="text-2xl font-bold text-white mb-1 flex items-center gap-3">
+                            <i class="fas fa-chart-line text-[#FFD700]"></i> Reporte de Rendimiento
+                        </h3>
+                        <p class="text-gray-400 text-sm">Métricas de generación y consumo de recursos</p>
+                    </div>
+                    <!-- Filters Inline -->
+                    <div class="flex gap-3 mt-4 md:mt-0">
+                        <select id="monthSelect"
+                            class="bg-[#0f1016] border border-gray-600 text-white text-xs rounded-lg px-3 py-2 outline-none focus:border-[#FFD700] transition-colors"></select>
+                        <select id="yearSelect"
+                            class="bg-[#0f1016] border border-gray-600 text-white text-xs rounded-lg px-3 py-2 outline-none focus:border-[#FFD700] transition-colors"></select>
+                        <button onclick="fetchStats()"
+                            class="bg-[#FFD700] hover:bg-[#ffed4a] text-black text-xs font-bold px-4 py-2 rounded-lg transition-transform hover:scale-105 active:scale-95 shadow-lg shadow-yellow-900/20">
+                            <i class="fas fa-sync-alt mr-1"></i> Actualizar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Main Stats Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 relative z-10">
+                    <!-- Card 1: Total Generations -->
+                    <div
+                        class="bg-[#0f1016]/80 p-5 rounded-xl border border-gray-700 hover:border-[#FFD700]/50 transition-colors backdrop-blur-sm">
+                        <div class="flex justify-between items-start mb-2">
+                            <div class="p-2 bg-[#FFD700]/10 rounded-lg text-[#FFD700]">
+                                <i class="fas fa-camera"></i>
+                            </div>
+                            <span class="text-xs font-mono text-gray-500 bg-[#FFD700]/5 px-2 py-1 rounded">LOOKS</span>
+                        </div>
+                        <h4 class="text-4xl font-bold text-white mb-1" id="statsCount">--</h4>
+                        <p class="text-xs text-gray-400">Imágenes generadas</p>
+                    </div>
+
+                    <!-- Card 2: Total Tokens -->
+                    <div
+                        class="bg-[#0f1016]/80 p-5 rounded-xl border border-gray-700 hover:border-[#00ff88]/50 transition-colors backdrop-blur-sm">
+                        <div class="flex justify-between items-start mb-2">
+                            <div class="p-2 bg-[#00ff88]/10 rounded-lg text-[#00ff88]">
+                                <i class="fas fa-coins"></i>
+                            </div>
+                            <span class="text-xs font-mono text-gray-500 bg-[#00ff88]/5 px-2 py-1 rounded">TOTAL
+                                TOKENS</span>
+                        </div>
+                        <h4 class="text-3xl font-bold text-white mb-1" id="totalTokensCount">--</h4>
+                        <p class="text-xs text-gray-400">Consumo global de API</p>
+                    </div>
+
+                    <!-- Card 3: Efficiency/Breakdown -->
+                    <div
+                        class="bg-[#0f1016]/80 p-5 rounded-xl border border-gray-700 hover:border-[#00d0ff]/50 transition-colors backdrop-blur-sm">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="p-2 bg-[#00d0ff]/10 rounded-lg text-[#00d0ff]">
+                                <i class="fas fa-server"></i>
+                            </div>
+                            <span
+                                class="text-xs font-mono text-gray-500 bg-[#00d0ff]/5 px-2 py-1 rounded">DESGLOSE</span>
+                        </div>
+
+                        <div class="space-y-3">
+                            <div>
+                                <div class="flex justify-between text-xs text-gray-300 mb-1">
+                                    <span>Generación (Imagen)</span>
+                                    <span class="text-[#00ff88]" id="genTokensCount">--</span>
+                                </div>
+                                <div class="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden">
+                                    <div class="h-full bg-[#00ff88] w-[70%]"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs text-gray-300 mb-1">
+                                    <span>Análisis (Admin)</span>
+                                    <span class="text-[#00d0ff]" id="analysisTokensCount">--</span>
+                                </div>
+                                <div class="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden">
+                                    <div class="h-full bg-[#00d0ff] w-[30%]"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 2: Subir Nuevo Item -->
+            <div class="bg-[#242636] p-6 rounded-lg border border-gray-700">
+                <h3 class="text-[#FFD700] font-bold mb-4 text-sm">Subir Nuevo Item</h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <input type="text" id="newItemName" placeholder="Nombre del Item"
+                        class="w-full bg-[#3d4052] text-gray-300 border-none rounded p-2 text-sm placeholder-gray-500">
+                    <select id="newItemCategory" onchange="toggleColorInput()"
+                        class="w-full bg-[#3d4052] text-gray-300 border-none rounded p-2 text-sm">
+                        <option value="hairstyle">Peinado</option>
+                        <option value="color">Color</option>
+                    </select>
+                    <div class="flex gap-2">
+                        <input type="number" id="newItemOrder" placeholder="Orden (ej. 1)" value="0"
+                            class="w-full bg-[#3d4052] text-gray-300 border-none rounded p-2 text-sm placeholder-gray-500">
+                        <input type="color" id="newItemColorCode"
+                            class="h-9 w-full bg-transparent cursor-pointer rounded hidden" title="Selecciona el color">
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 mb-4">
+                    <input type="file" id="newItemFile" class="hidden" accept="image/*" onchange="updateFileName(this)">
+                    <button onclick="document.getElementById('newItemFile').click()"
+                        class="bg-[#CC8E35] text-white text-xs px-3 py-2 rounded hover:bg-[#b07b2e] transition">Seleccionar
+                        archivo</button>
+                    <span id="fileNameDisplay" class="text-gray-500 text-xs italic">Ningún archivo seleccionado</span>
+                </div>
+
+                <button onclick="uploadItem()" id="uploadItemBtn"
+                    class="w-full bg-[#2E8B57] hover:bg-[#256e45] text-white font-bold py-2 rounded transition text-sm shadow-lg">
+                    Subir Item
+                </button>
+            </div>
+
+            <!-- Section 2.5: System Prompts Configuration -->
+            <div class="bg-[#242636] p-6 rounded-lg border border-gray-700 relative">
+                <!-- Lock Overlay by default (implied by disabled inputs, but let's make it explicit) -->
+
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-[#FFD700] font-bold text-sm">Configuración de Prompts (Sistema)</h3>
+                    <div class="flex gap-2">
+                        <button id="unlockPromptsBtn" onclick="initUnlockPrompts()"
+                            class="bg-gray-700 hover:bg-gray-600 text-gray-300 text-xs px-3 py-1 rounded transition shadow flex items-center gap-1">
+                            <i class="fas fa-lock"></i> Desbloquear
+                        </button>
+                        <button id="savePromptsBtn" onclick="savePrompts()"
+                            class="hidden bg-[#CC8E35] hover:bg-[#b07b2e] text-white text-xs px-3 py-1 rounded transition shadow flex items-center gap-1">
+                            <i class="fas fa-save"></i> Guardar Prompts
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Hairstyle Prompt -->
+                    <div class="flex flex-col gap-2">
+                        <label class="text-gray-500 text-xs font-bold uppercase tracking-widest">
+                            <i class="fas fa-microchip"></i> Core System: Peinados
+                        </label>
+                        <textarea id="hairstylePromptInput" rows="10" disabled
+                            class="w-full bg-[#15161c] text-gray-500 text-xs border border-gray-800 rounded p-3 outline-none cursor-not-allowed custom-scrollbar opacity-70"
+                            placeholder="Prompt maestro para analizar peinados..."></textarea>
+                    </div>
+
+                    <!-- Color Prompt -->
+                    <div class="flex flex-col gap-2">
+                        <label class="text-gray-500 text-xs font-bold uppercase tracking-widest">
+                            <i class="fas fa-microchip"></i> Core System: Colores
+                        </label>
+                        <textarea id="colorPromptInput" rows="10" disabled
+                            class="w-full bg-[#15161c] text-gray-500 text-xs border border-gray-800 rounded p-3 outline-none cursor-not-allowed custom-scrollbar opacity-70"
+                            placeholder="Prompt maestro para analizar colores..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <!-- Section 3: Lists -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                <!-- Peinados List -->
+                <div class="bg-[#242636] p-4 rounded-lg border border-gray-700 h-96 overflow-y-auto custom-scrollbar">
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="text-[#CC8E35] text-sm font-bold">Peinados</h4>
+                    </div>
+                    <div id="peinadosList" class="space-y-2">
+                        <p class="text-gray-500 text-xs text-center py-4">Cargando...</p>
+                    </div>
+                </div>
+
+                <!-- Colores List -->
+                <div class="bg-[#242636] p-4 rounded-lg border border-gray-700 h-96 overflow-y-auto custom-scrollbar">
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="text-[#CC8E35] text-sm font-bold">Colores</h4>
+                    </div>
+                    <div id="colorsList" class="space-y-2">
+                        <p class="text-gray-500 text-xs text-center py-4">Cargando...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Protected API Section Toggle -->
+            <!-- Protected Section 1: Peinado Toggle -->
+            <div id="peinadoLock"
+                class="bg-[#242636] p-4 rounded-lg border border-gray-700 mb-4 flex justify-between items-center cursor-pointer hover:bg-[#2a2d40] transition"
+                onclick="unlockSection('peinado')">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-gray-700 rounded text-gray-400">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-gray-300 text-sm font-bold">Configuración de Peinado</h4>
+                        <p class="text-xs text-gray-500">Gestión de Llaves y Modelos AI</p>
+                    </div>
+                </div>
+                <i class="fas fa-chevron-right text-gray-500"></i>
+            </div>
+
+            <!-- Section 2.5: Configuración APIs (HIDDEN) -->
+            <!-- Section 1: Configuración de Peinado (HIDDEN) -->
+            <div id="peinadoSection"
+                class="hidden bg-[#242636] p-6 rounded-lg border border-gray-700 mb-8 relative overflow-hidden transition-all duration-500">
+                <div class="absolute top-0 right-0 p-4 opacity-10">
+                    <i class="fas fa-cut text-6xl text-[#FFD700]"></i>
+                </div>
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-[#FFD700] font-bold text-sm flex items-center gap-2">
+                        <i class="fas fa-cut"></i> Configuración de Peinado
+                    </h3>
+                    <button onclick="lockSection('peinado')" class="text-gray-500 hover:text-white text-xs">
+                        <i class="fas fa-eye-slash"></i> Ocultar
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Google Gemini Config -->
+                    <div class="bg-[#1a1b26] p-4 rounded border border-gray-600">
+                        <div class="flex justify-between items-center mb-4">
+                            <h4 class="text-white text-sm font-bold flex items-center gap-2">
+                                <i class="fab fa-google"></i> Google Gemini
+                            </h4>
+                            <button onclick="toggleKeyForm('google')"
+                                class="text-[10px] bg-[#FFD700] text-black px-2 py-1 rounded font-bold hover:bg-yellow-400">
+                                <i class="fas fa-plus"></i> Nueva Llave
+                            </button>
+                        </div>
+
+                        <!-- Add New Key Form -->
+                        <div id="googleAddForm" class="hidden mb-4 p-3 bg-[#0f1016] rounded border border-gray-700">
+                            <div class="flex flex-col gap-2">
+                                <input type="text" id="googleAliasInput" placeholder="Nombre (ej. Dev, Producción)"
+                                    class="bg-[#1a1b26] text-white text-xs border border-gray-600 rounded px-2 py-1 outline-none focus:border-[#FFD700]">
+                                <input type="password" id="googleKeyInput" placeholder="Pegar API Key..."
+                                    class="bg-[#1a1b26] text-white text-xs border border-gray-600 rounded px-2 py-1 outline-none focus:border-[#FFD700]">
+                                <div class="flex justify-end gap-2">
+                                    <button onclick="toggleKeyForm('google')"
+                                        class="text-gray-400 text-[10px] hover:text-white">Cancelar</button>
+                                    <button onclick="saveApiKey('google')"
+                                        class="bg-[#2E8B57] text-white px-2 py-1 rounded text-[10px]">Guardar</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Keys List -->
+                        <div id="googleKeysList" class="flex flex-col gap-2 max-h-40 overflow-y-auto pr-1">
+                            <div class="text-gray-500 text-[10px] text-center italic">Cargando llaves...</div>
+                        </div>
+                    </div>
+
+                    <!-- Model Selection Panel -->
+                    <div class="bg-[#1a1b26] p-4 rounded border border-gray-600 flex flex-col gap-4">
+                        <div class="flex justify-between items-center">
+                            <h4 class="text-white text-sm font-bold flex items-center gap-2">
+                                <i class="fas fa-brain"></i> Modelo Activo
+                            </h4>
+                            <button onclick="fetchModels()" title="Refrescar lista desde Google"
+                                class="text-gray-400 hover:text-[#FFD700] transition">
+                                <i class="fas fa-sync-alt text-xs"></i>
+                            </button>
+                        </div>
+
+                        <div class="relative">
+                            <select id="modelSelect"
+                                class="w-full bg-[#0f1016] text-white text-xs border border-gray-600 rounded px-3 py-2 outline-none focus:border-[#FFD700] appearance-none cursor-pointer">
+                                <option value="" disabled selected>Cargando modelos...</option>
+                            </select>
+                            <div class="absolute right-3 top-2 pointer-events-none text-gray-500">
+                                <i class="fas fa-chevron-down text-xs"></i>
+                            </div>
+                        </div>
+
+                        <button onclick="saveModelSelection()"
+                            class="w-full bg-[#CC8E35] hover:bg-[#b07b2e] text-white text-xs font-bold py-2 rounded transition shadow-lg">
+                            Guardar Preferencia
+                        </button>
+                    </div>
+                </div>
+
+                <script>
+                    async function fetchModels(section = 'peinado') {
+                        // Determine select ID based on section
+                        let selectId = 'modelSelect';
+                        if (section === 'look') selectId = 'lookModelSelect';
+                        if (section === 'asesoria') selectId = 'asesoriaModelSelect';
+
+                        const select = document.getElementById(selectId);
+                        if (!select) return; // Guard
+                        select.innerHTML = '<option>Cargando...</option>';
+
+                        try {
+                            const res = await fetch(`/api/mirror/models?section=${section}`);
+                            const models = await res.json();
+                            if (!res.ok) throw new Error(models.error || 'Error al cargar modelos');
+
+                            // Fetch active key for this section
+                            const keysRes = await fetch(`/api/mirror/keys?section=${section}`);
+                            const keys = await keysRes.json();
+                            const activeKey = keys.find(k => k.provider === 'google' && k.is_active);
+                            const savedModel = activeKey && activeKey.settings ? activeKey.settings.model : null;
+
+                            select.innerHTML = '';
+                            const defaultOpt = document.createElement('option');
+                            defaultOpt.text = "Selecciona un modelo...";
+                            defaultOpt.value = "";
+                            select.appendChild(defaultOpt);
+
+                            models.forEach(m => {
+                                const opt = document.createElement('option');
+                                opt.value = m.name;
+                                opt.text = m.displayName + (m.name.includes('exp') ? ' (Exp)' : '');
+                                if (savedModel && m.name === savedModel) {
+                                    opt.selected = true;
+                                    opt.text += " (Activo)";
+                                }
+                                select.appendChild(opt);
+                            });
+                        } catch (e) {
+                            console.error(e);
+                            select.innerHTML = '<option>Error de conexión</option>';
+                            showToast("Error al cargar modelos: " + e.message, "error");
+                        }
+                    }
+
+                    async function saveModelSelection(section = 'peinado') {
+                        let selectId = 'modelSelect';
+                        if (section === 'look') selectId = 'lookModelSelect';
+                        if (section === 'asesoria') selectId = 'asesoriaModelSelect';
+
+                        const select = document.getElementById(selectId);
+                        const modelName = select.value;
+                        if (!modelName) return showToast("Selecciona un modelo válido", "warning");
+
+                        try {
+                            const res = await fetch(`/api/mirror/keys?section=${section}`);
+                            const keys = await res.json();
+                            const activeKey = keys.find(k => k.provider === 'google' && k.is_active);
+                            if (!activeKey) return showToast(`No hay llave de Google activa para ${section}`, "error");
+
+                            const updateRes = await fetch(`/api/mirror/keys/${activeKey.id}/settings`, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ model: modelName })
+                            });
+                            if (updateRes.ok) {
+                                showToast(`Modelo actualizado a: ${modelName}`);
+                                // Refresh to show (Activo)
+                                fetchModels(section);
+                            } else {
+                                showToast("Error al guardar preferencia", "error");
+                            }
+                        } catch (e) {
+                            console.error(e);
+                            showToast("Error de conexión", "error");
+                        }
+                    }
+                    document.addEventListener('DOMContentLoaded', () => {
+                        setTimeout(() => fetchModels('peinado'), 500);
+                        setTimeout(() => fetchModels('look'), 800);
+                        setTimeout(() => fetchModels('asesoria'), 1100);
+                    });
+                </script>
+            </div>
+
+            <!-- Protected Section 2: Cambio de Look Toggle -->
+            <div id="lookLock"
+                class="bg-[#242636] p-4 rounded-lg border border-gray-700 mb-8 flex justify-between items-center cursor-pointer hover:bg-[#2a2d40] transition"
+                onclick="unlockSection('look')">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-gray-700 rounded text-gray-400">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-gray-300 text-sm font-bold">Contenedor de Look</h4>
+                        <p class="text-xs text-gray-500">Configuración de Transformación</p>
+                    </div>
+                </div>
+                <i class="fas fa-chevron-right text-gray-500"></i>
+            </div>
+
+            <!-- Section 2: Cambio de Look (HIDDEN) -->
+            <div id="lookSection"
+                class="hidden bg-[#242636] p-6 rounded-lg border border-gray-700 mb-8 relative overflow-hidden transition-all duration-500">
+                <div class="absolute top-0 right-0 p-4 opacity-10">
+                    <i class="fas fa-magic text-6xl text-[#00ff88]"></i>
+                </div>
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-[#00ff88] font-bold text-sm flex items-center gap-2">
+                        <i class="fas fa-magic"></i> Contenedor de Look
+                    </h3>
+                    <button onclick="lockSection('look')" class="text-gray-500 hover:text-white text-xs">
+                        <i class="fas fa-eye-slash"></i> Ocultar
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Google Gemini Config (Look) -->
+                    <div class="bg-[#1a1b26] p-4 rounded border border-gray-600">
+                        <div class="flex justify-between items-center mb-4">
+                            <h4 class="text-white text-sm font-bold flex items-center gap-2">
+                                <i class="fab fa-google"></i> Google Gemini
+                            </h4>
+                            <button onclick="toggleKeyForm('look')"
+                                class="text-[10px] bg-[#00ff88] text-black px-2 py-1 rounded font-bold hover:bg-green-400">
+                                <i class="fas fa-plus"></i> Nueva Llave
+                            </button>
+                        </div>
+
+                        <!-- Add New Key Form -->
+                        <div id="lookAddForm" class="hidden mb-4 p-3 bg-[#0f1016] rounded border border-gray-700">
+                            <div class="flex flex-col gap-2">
+                                <input type="text" id="lookAliasInput" placeholder="Nombre (ej. Look Pro)"
+                                    class="bg-[#1a1b26] text-white text-xs border border-gray-600 rounded px-2 py-1 outline-none focus:border-[#00ff88]">
+                                <input type="password" id="lookKeyInput" placeholder="Pegar API Key..."
+                                    class="bg-[#1a1b26] text-white text-xs border border-gray-600 rounded px-2 py-1 outline-none focus:border-[#00ff88]">
+                                <div class="flex justify-end gap-2">
+                                    <button onclick="toggleKeyForm('look')"
+                                        class="text-gray-400 text-[10px] hover:text-white">Cancelar</button>
+                                    <button onclick="saveApiKey('look')"
+                                        class="bg-[#2E8B57] text-white px-2 py-1 rounded text-[10px]">Guardar</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Keys List -->
+                        <div id="lookKeysList" class="flex flex-col gap-2 max-h-40 overflow-y-auto pr-1">
+                            <div class="text-gray-500 text-[10px] text-center italic">Cargando llaves...</div>
+                        </div>
+                    </div>
+
+                    <!-- Model Selection Panel (Look) -->
+                    <div class="bg-[#1a1b26] p-4 rounded border border-gray-600 flex flex-col gap-4">
+                        <div class="flex justify-between items-center">
+                            <h4 class="text-white text-sm font-bold flex items-center gap-2">
+                                <i class="fas fa-brain"></i> Modelo Activo (Look)
+                            </h4>
+                            <button onclick="fetchModels('look')" title="Refrescar lista"
+                                class="text-gray-400 hover:text-[#00ff88] transition">
+                                <i class="fas fa-sync-alt text-xs"></i>
+                            </button>
+                        </div>
+
+                        <div class="relative">
+                            <select id="lookModelSelect"
+                                class="w-full bg-[#0f1016] text-white text-xs border border-gray-600 rounded px-3 py-2 outline-none focus:border-[#00ff88] appearance-none cursor-pointer">
+                                <option value="" disabled selected>Cargando modelos...</option>
+                            </select>
+                            <div class="absolute right-3 top-2 pointer-events-none text-gray-500">
+                                <i class="fas fa-chevron-down text-xs"></i>
+                            </div>
+                        </div>
+
+                        <button onclick="saveModelSelection('look')"
+                            class="w-full bg-[#00ff88] hover:bg-[#00cc6a] text-black text-xs font-bold py-2 rounded transition shadow-lg">
+                            Guardar Preferencia
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 4 Containers for Look Prompts -->
+                <div class="mt-8 border-t border-gray-700 pt-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="text-[#00ff88] text-sm font-bold uppercase">Prompts de Transformación (Look)</h4>
+                        <div class="flex gap-2">
+                            <button id="unlockLookPromptsBtn" onclick="initUnlockLookPrompts()"
+                                class="bg-gray-700 hover:bg-gray-600 text-gray-300 text-xs px-3 py-1 rounded transition shadow flex items-center gap-1">
+                                <i class="fas fa-lock"></i> Desbloquear Estructura
+                            </button>
+                            <button id="saveLookPromptsBtn" onclick="saveLookPrompts()"
+                                class="bg-[#CC8E35] hover:bg-[#b07b2e] text-white text-xs px-3 py-1 rounded transition shadow flex items-center gap-1">
+                                <i class="fas fa-save"></i> Guardar Prompts
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- P1 (Locked) -->
+                        <div class="flex flex-col gap-1">
+                            <div class="flex justify-between">
+                                <label class="text-gray-500 text-[10px] font-bold">P CARA <i
+                                        class="fas fa-lock text-[8px] ml-1"></i></label>
+                            </div>
+                            <textarea id="lookPrompt1" rows="6" disabled
+                                class="w-full bg-[#15161c] text-gray-500 text-xs border border-gray-800 rounded p-3 outline-none cursor-not-allowed custom-scrollbar opacity-70"
+                                placeholder="Prompt para cara..."></textarea>
+                        </div>
+
+                        <!-- P2 (Editable) -->
+                        <div class="flex flex-col gap-1">
+                            <label class="text-[#00ff88] text-[10px] font-bold">P PEINADOS</label>
+                            <textarea id="lookPrompt2" rows="6"
+                                class="w-full bg-[#1a1b26] text-gray-300 text-xs border border-gray-600 rounded p-3 outline-none focus:border-[#00ff88] custom-scrollbar"
+                                placeholder="Prompt para peinados..."></textarea>
+                        </div>
+
+                        <!-- P3 (Editable) -->
+                        <div class="flex flex-col gap-1">
+                            <label class="text-[#00ff88] text-[10px] font-bold">P COLORES</label>
+                            <textarea id="lookPrompt3" rows="6"
+                                class="w-full bg-[#1a1b26] text-gray-300 text-xs border border-gray-600 rounded p-3 outline-none focus:border-[#00ff88] custom-scrollbar"
+                                placeholder="Prompt para colores..."></textarea>
+                        </div>
+
+                        <!-- P4 (Locked) -->
+                        <div class="flex flex-col gap-1">
+                            <div class="flex justify-between">
+                                <label class="text-gray-500 text-[10px] font-bold">COMBINACIÓN <i
+                                        class="fas fa-lock text-[8px] ml-1"></i></label>
+                            </div>
+                            <textarea id="lookPrompt4" rows="6" disabled
+                                class="w-full bg-[#15161c] text-gray-500 text-xs border border-gray-800 rounded p-3 outline-none cursor-not-allowed custom-scrollbar opacity-70"
+                                placeholder="Prompt de combinación..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+
+    </div>
+    </div>
+
+
+    <!-- Protected Section 3: Asesoria IA Toggle -->
+    <div id="asesoriaLock"
+        class="bg-[#242636] p-4 rounded-lg border border-gray-700 mb-8 flex justify-between items-center cursor-pointer hover:bg-[#2a2d40] transition"
+        onclick="unlockSection('asesoria')">
+        <div class="flex items-center gap-3">
+            <div class="p-2 bg-gray-700 rounded text-gray-400">
+                <i class="fas fa-lock"></i>
+            </div>
+            <div>
+                <h4 class="text-gray-300 text-sm font-bold">Configuración de Asesoria (Chat)</h4>
+                <p class="text-xs text-gray-500">Gestión de Chatbot y Personalidad</p>
+            </div>
+        </div>
+        <i class="fas fa-chevron-right text-gray-500"></i>
+    </div>
+
+    <!-- Section 3: Asesoria (HIDDEN) -->
+    <div id="asesoriaSection"
+        class="hidden bg-[#242636] p-6 rounded-lg border border-gray-700 mb-8 relative overflow-hidden transition-all duration-500">
+        <div class="absolute top-0 right-0 p-4 opacity-10">
+            <i class="fas fa-robot text-6xl text-[#00ccff]"></i>
+        </div>
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-[#00ccff] font-bold text-sm flex items-center gap-2">
+                <i class="fas fa-robot"></i> Asesoria Chatbot
+            </h3>
+            <button onclick="lockSection('asesoria')" class="text-gray-500 hover:text-white text-xs">
+                <i class="fas fa-eye-slash"></i> Ocultar
+            </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Google Gemini Config (Asesoria) -->
+            <div class="bg-[#1a1b26] p-4 rounded border border-gray-600">
+                <div class="flex justify-between items-center mb-4">
+                    <h4 class="text-white text-sm font-bold flex items-center gap-2">
+                        <i class="fab fa-google"></i> Google Gemini
+                    </h4>
+                    <button onclick="toggleKeyForm('asesoria')"
+                        class="text-[10px] bg-[#00ccff] text-black px-2 py-1 rounded font-bold hover:bg-cyan-400">
+                        <i class="fas fa-plus"></i> Nueva Llave
+                    </button>
+                </div>
+
+                <!-- Add New Key Form -->
+                <div id="asesoriaAddForm" class="hidden mb-4 p-3 bg-[#0f1016] rounded border border-gray-700">
+                    <div class="flex flex-col gap-2">
+                        <input type="text" id="asesoriaAliasInput" placeholder="Nombre (ej. Asesor Chat)"
+                            class="bg-[#1a1b26] text-white text-xs border border-gray-600 rounded px-2 py-1 outline-none focus:border-[#00ccff]">
+                        <input type="password" id="asesoriaKeyInput" placeholder="Pegar API Key..."
+                            class="bg-[#1a1b26] text-white text-xs border border-gray-600 rounded px-2 py-1 outline-none focus:border-[#00ccff]">
+                        <div class="flex justify-end gap-2">
+                            <button onclick="toggleKeyForm('asesoria')"
+                                class="text-gray-400 text-[10px] hover:text-white">Cancelar</button>
+                            <button onclick="saveApiKey('asesoria')"
+                                class="bg-[#2E8B57] text-white px-2 py-1 rounded text-[10px]">Guardar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Keys List -->
+                <div id="asesoriaKeysList" class="flex flex-col gap-2 max-h-40 overflow-y-auto pr-1">
+                    <div class="text-gray-500 text-[10px] text-center italic">Cargando llaves...</div>
+                </div>
+            </div>
+
+            <!-- Model Selection Panel (Asesoria) -->
+            <div class="bg-[#1a1b26] p-4 rounded border border-gray-600 flex flex-col gap-4">
+                <div class="flex justify-between items-center">
+                    <h4 class="text-white text-sm font-bold flex items-center gap-2">
+                        <i class="fas fa-brain"></i> Modelo Activo (Chat)
+                    </h4>
+                    <button onclick="fetchModels('asesoria')" title="Refrescar lista"
+                        class="text-gray-400 hover:text-[#00ccff] transition">
+                        <i class="fas fa-sync-alt text-xs"></i>
+                    </button>
+                </div>
+
+                <div class="relative">
+                    <select id="asesoriaModelSelect"
+                        class="w-full bg-[#0f1016] text-white text-xs border border-gray-600 rounded px-3 py-2 outline-none focus:border-[#00ccff] appearance-none cursor-pointer">
+                        <option value="" disabled selected>Cargando modelos...</option>
+                    </select>
+                    <div class="absolute right-3 top-2 pointer-events-none text-gray-500">
+                        <i class="fas fa-chevron-down text-xs"></i>
+                    </div>
+                </div>
+
+                <button onclick="saveModelSelection('asesoria')"
+                    class="w-full bg-[#00ccff] hover:bg-[#0099cc] text-black text-xs font-bold py-2 rounded transition shadow-lg">
+                    Guardar Preferencia
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Password Modal -->
+    <div id="passwordModal"
+        class="hidden fixed inset-0 bg-black/90 flex justify-center items-center z-[2000] backdrop-blur-sm">
+        <div
+            class="bg-[#242636] p-6 rounded-lg border border-[#FFD700] w-80 shadow-2xl transform transition-all scale-100">
+            <h3 id="modalTitle" class="text-[#FFD700] font-bold text-center mb-4 text-lg">⚠️ Confirmar Borrado</h3>
+            <p id="modalDesc" class="text-gray-300 text-sm text-center mb-6">Ingresa la contraseña para eliminar
+                permanentemente este item.</p>
+
+            <input type="password" id="deletePasswordInput" placeholder="Contraseña"
+                class="w-full bg-[#13141f] text-white border border-gray-600 rounded p-3 mb-6 text-center focus:border-[#FFD700] outline-none text-lg tracking-widest transition-colors">
+
+            <div class="flex gap-3">
+                <button onclick="closePasswordModal()"
+                    class="flex-1 bg-gray-600 hover:bg-gray-500 text-white py-2 rounded transition-all duration-200 text-sm cursor-pointer hover:scale-105 active:scale-95">
+                    Cancelar
+                </button>
+                <button id="modalConfirmBtn" onclick="confirmDelete()"
+                    class="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white py-2 rounded shadow-lg transition-all duration-200 text-sm font-bold cursor-pointer hover:scale-105 active:scale-95 ring-2 ring-red-500/50 hover:ring-red-400">
+                    Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Toast Notification -->
+    <div id="toast"
+        class="fixed bottom-5 right-5 transform translate-y-20 opacity-0 transition-all duration-500 z-[3000]">
+        <div
+            class="bg-[#1a1b26] border-l-4 border-[#00ff88] text-white px-6 py-4 rounded-lg shadow-2xl flex items-center gap-4">
+            <div class="bg-[#00ff88]/20 p-2 rounded-full text-[#00ff88]">
+                <i class="fas fa-check-circle text-xl"></i>
+            </div>
+            <div>
+                <h4 class="font-bold text-sm">¡Éxito!</h4>
+                <p class="text-xs text-gray-300" id="toastMessage">Operación realizada correctamente</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN SCRIPT -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            populateDates();
+            fetchAdminItems();
+            fetchStats();
+            fetchApiKeys();
+            fetchPrompts(); // Load system prompts
+        });
+
+        // --- System Prompts ---
+        async function fetchPrompts() {
+            try {
+                const res = await fetch('/api/mirror/config');
+                const config = await res.json();
+
+                // Peinado & Color (System)
+                if (config.hairstyle_sys_prompt) document.getElementById('hairstylePromptInput').value = config.hairstyle_sys_prompt;
+                if (config.color_sys_prompt) document.getElementById('colorPromptInput').value = config.color_sys_prompt;
+
+                // Look Prompts (1-4)
+                if (config.look_sys_prompt_1) document.getElementById('lookPrompt1').value = config.look_sys_prompt_1;
+                if (config.look_sys_prompt_2) document.getElementById('lookPrompt2').value = config.look_sys_prompt_2;
+                if (config.look_sys_prompt_3) document.getElementById('lookPrompt3').value = config.look_sys_prompt_3;
+                if (config.look_sys_prompt_4) document.getElementById('lookPrompt4').value = config.look_sys_prompt_4;
+
+            } catch (e) { console.error("Error loading prompts:", e); }
+        }
+
+        async function savePrompts() {
+            // Save ONLY the Peinado/Color prompts to avoid overwriting look prompts if they are separate calls?
+            // Actually, the API updates whatever is sent. We should send peinado/color here.
+
+            const hairstyle_sys_prompt = document.getElementById('hairstylePromptInput').value;
+            const color_sys_prompt = document.getElementById('colorPromptInput').value;
+
+            await updateConfig({ hairstyle_sys_prompt, color_sys_prompt }, "Prompts de Peinado/Color actualizados");
+        }
+
+        async function saveLookPrompts() {
+            const look_sys_prompt_1 = document.getElementById('lookPrompt1').value;
+            const look_sys_prompt_2 = document.getElementById('lookPrompt2').value;
+            const look_sys_prompt_3 = document.getElementById('lookPrompt3').value;
+            const look_sys_prompt_4 = document.getElementById('lookPrompt4').value;
+
+            await updateConfig({
+                look_sys_prompt_1,
+                look_sys_prompt_2,
+                look_sys_prompt_3,
+                look_sys_prompt_4
+            }, "Prompts de Look actualizados");
+        }
+
+        async function updateConfig(data, successMsg) {
+            try {
+                const res = await fetch('/api/mirror/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (res.ok) {
+                    showToast(successMsg);
+                } else {
+                    const errData = await res.json();
+                    showToast("Error: " + (errData.error || "Fallo desconocido"), "error");
+                }
+            } catch (e) {
+                console.error(e);
+                showToast("Error de conexión: " + e.message, "error");
+            }
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMessage');
+            const border = toast.querySelector('div');
+            const iconContainer = toast.querySelector('div > div');
+            const icon = iconContainer.querySelector('i');
+            const title = toast.querySelector('h4');
+
+            toastMsg.textContent = message;
+
+            if (type === 'error') {
+                border.classList.replace('border-[#00ff88]', 'border-red-500');
+                iconContainer.classList.replace('bg-[#00ff88]/20', 'bg-red-500/20');
+                iconContainer.classList.replace('text-[#00ff88]', 'text-red-500');
+                icon.className = 'fas fa-exclamation-circle text-xl';
+                title.textContent = 'Error';
+            } else if (type === 'warning') {
+                border.className = 'bg-[#1a1b26] border-l-4 border-yellow-500 text-white px-6 py-4 rounded-lg shadow-2xl flex items-center gap-4';
+                iconContainer.className = 'bg-yellow-500/20 p-2 rounded-full text-yellow-500';
+                icon.className = 'fas fa-exclamation-triangle text-xl';
+                title.textContent = 'Advertencia';
+            }
+            else {
+                border.className = 'bg-[#1a1b26] border-l-4 border-[#00ff88] text-white px-6 py-4 rounded-lg shadow-2xl flex items-center gap-4';
+                iconContainer.className = 'bg-[#00ff88]/20 p-2 rounded-full text-[#00ff88]';
+                icon.className = 'fas fa-check-circle text-xl';
+                title.textContent = '¡Éxito!';
+            }
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // --- Data Fetching & UI ---
+
+        function populateDates() {
+            const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+            const monthSelect = document.getElementById('monthSelect');
+            const yearSelect = document.getElementById('yearSelect');
+            const currentMonthIndex = new Date().getMonth();
+            months.forEach((m, index) => {
+                const opt = document.createElement('option');
+                opt.value = m; opt.textContent = m;
+                if (index === currentMonthIndex) opt.selected = true;
+                monthSelect.appendChild(opt);
+            });
+            const currentYear = new Date().getFullYear();
+            for (let y = 2024; y <= 2030; y++) {
+                const opt = document.createElement('option');
+                opt.value = y; opt.textContent = y;
+                if (y === currentYear) opt.selected = true;
+                yearSelect.appendChild(opt);
+            }
+        }
+
+        async function fetchStats() {
+            try {
+                const res = await fetch('/api/mirror/stats');
+                const data = await res.json();
+                const fmt = (n) => (n || 0).toLocaleString();
+
+                document.getElementById('statsCount').textContent = data.generations;
+                document.getElementById('genTokensCount').textContent = fmt(data.generation_tokens);
+                document.getElementById('analysisTokensCount').textContent = fmt(data.analysis_tokens);
+                document.getElementById('totalTokensCount').textContent = fmt(data.total_tokens);
+            } catch (err) { console.error("Error cargando stats:", err); }
+        }
+
+        // --- API Keys Management ---
+
+        // --- API Keys Management ---
+
+        async function fetchApiKeys() {
+            // Fetch for both sections (or make it generic)
+            // But main purpose here is to populate the lists.
+            // We can rename to refreshAllApiKeys
+            await renderSectionKeys('peinado');
+            await renderSectionKeys('look');
+            await renderSectionKeys('asesoria');
+        }
+
+        async function renderSectionKeys(section) {
+            try {
+                const res = await fetch(`/api/mirror/keys?section=${section}`);
+                const keys = await res.json();
+
+                // Which list to target?
+                // Peinado -> 'googleKeysList'
+                // Look -> 'lookKeysList' (assuming we only support google for now)
+
+                let listId = 'googleKeysList';
+                if (section === 'look') listId = 'lookKeysList';
+                if (section === 'asesoria') listId = 'asesoriaKeysList';
+                renderKeysListInContainer(listId, keys.filter(k => k.provider === 'google'));
+            } catch (e) { console.error(`Error fetching keys for ${section}`, e); }
+        }
+
+        function renderKeysListInContainer(containerId, keys) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.innerHTML = '';
+
+            if (keys.length === 0) {
+                container.innerHTML = '<div class="text-gray-500 text-[10px] text-center italic">No hay llaves configuradas.</div>';
+                return;
+            }
+
+            keys.forEach(key => {
+                const el = document.createElement('div');
+                el.className = `flex justify-between items-center p-2 rounded border ${key.is_active ? 'bg-green-900/10 border-green-500/30' : 'bg-[#0f1016] border-gray-700'}`;
+
+                el.innerHTML = `
+                    <div class="flex flex-col overflow-hidden">
+                        <span class="text-xs font-bold ${key.is_active ? 'text-green-400' : 'text-gray-300'}">${key.alias}</span>
+                        <span class="text-[10px] text-gray-500 font-mono">${key.api_key}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        ${!key.is_active ? `
+                            <button onclick="activateKey(${key.id}, '${key.section}')" title="Activar" class="text-gray-500 hover:text-green-400">
+                                <i class="fas fa-check-circle"></i>
+                            </button>
+                        ` : '<i class="fas fa-check-circle text-green-500 text-xs" title="Activa"></i>'}
+                        <button onclick="deleteKey(${key.id})" title="Eliminar" class="text-gray-600 hover:text-red-400">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(el);
+            });
+        }
+
+        // Renamed 'renderKeysList' to be specific, removing old one.
+
+        function toggleKeyForm(sectionOrProvider) {
+            // 'google' (peinado) or 'look' (look section, assumes google)
+            // Wait, UI passes 'google' for Peinado section (legacy), and 'look' for Look section
+            // Mapping:
+            // 'google' -> id: googleAddForm
+            // 'look' -> id: lookAddForm
+            let formId = '';
+            if (sectionOrProvider === 'google') formId = 'googleAddForm';
+            else if (sectionOrProvider === 'look') formId = 'lookAddForm';
+            else if (sectionOrProvider === 'asesoria') formId = 'asesoriaAddForm';
+
+            const form = document.getElementById(formId);
+            if (form) form.classList.toggle('hidden');
+        }
+
+        async function saveApiKey(section) {
+            // section: 'google' (means peinado section) OR 'look' (look section)
+            // We should normalize this.
+
+            let realSection = 'peinado';
+            let prefix = 'google'; // for IDs
+
+            if (section === 'look') {
+                realSection = 'look';
+                prefix = 'look';
+            }
+            if (section === 'asesoria') {
+                realSection = 'asesoria';
+                prefix = 'asesoria';
+            }
+
+            // For Peinado inputs are: googleAliasInput, googleKeyInput
+            // For Look inputs are: lookAliasInput, lookKeyInput
+
+            const aliasInput = document.getElementById(prefix + 'AliasInput');
+            const keyInput = document.getElementById(prefix + 'KeyInput'); // 'lookKeyInput'
+
+            const alias = aliasInput.value.trim();
+            const key = keyInput.value.trim();
+
+            if (!key) return showToast("La llave no puede estar vacía", "error");
+
+            try {
+                const res = await fetch('/api/mirror/keys', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        provider: 'google',
+                        alias,
+                        api_key: key,
+                        section: realSection // 'peinado' or 'look'
+                    })
+                });
+
+                if (res.ok) {
+                    showToast("Llave agregada correctamente");
+                    aliasInput.value = '';
+                    keyInput.value = '';
+                    toggleKeyForm(section);
+                    fetchApiKeys(); // Refresh lists
+                } else {
+                    showToast("Error al guardar llave", "error");
+                }
+            } catch (e) {
+                console.error(e);
+                showToast("Error de conexión", "error");
+            }
+        }
+
+        async function activateKey(id, section) {
+            try {
+                const res = await fetch(`/api/mirror/keys/${id}/active`, { method: 'PUT' });
+                if (res.ok) {
+                    showToast("Llave activada - Cargando modelos...");
+                    await fetchApiKeys(); // Refresh keys UI
+                    // Refresh models for specific section
+                    setTimeout(() => fetchModels(section), 500);
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        // --- Items Management ---
+
+        function updateFileName(input) {
+            const display = document.getElementById('fileNameDisplay');
+            if (input.files && input.files.length > 0) display.textContent = input.files[0].name;
+            else display.textContent = 'Ningún archivo seleccionado';
+        }
+
+        function toggleColorInput() {
+            const category = document.getElementById('newItemCategory').value;
+            const colorInput = document.getElementById('newItemColorCode');
+            if (category === 'color') colorInput.classList.remove('hidden');
+            else colorInput.classList.add('hidden');
+        }
+
+        async function uploadItem() {
+            const nameInput = document.getElementById('newItemName');
+            const catInput = document.getElementById('newItemCategory');
+            const orderInput = document.getElementById('newItemOrder');
+            const fileInput = document.getElementById('newItemFile');
+            const colorInput = document.getElementById('newItemColorCode');
+            const btn = document.getElementById('uploadItemBtn');
+
+            if (!nameInput.value || !fileInput.files[0]) {
+                showToast("Por favor completa el nombre y selecciona un archivo.", "error");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('name', nameInput.value);
+            formData.append('category', catInput.value);
+            formData.append('order_index', orderInput.value || 0); // Correct param name
+            formData.append('file', fileInput.files[0]);
+
+            // DO NOT APPEND 'prompt' here so backend generates it automatically
+
+            if (catInput.value === 'color') {
+                formData.append('color_code', colorInput.value);
+            }
+
+            btn.disabled = true;
+            btn.textContent = "Subiendo (Generando Prompt AI)...";
+
+            try {
+                const res = await fetch('/api/mirror/items', { method: 'POST', body: formData });
+                const data = await res.json();
+
+                if (res.ok) {
+                    nameInput.value = '';
+                    fileInput.value = '';
+                    orderInput.value = '0';
+                    document.getElementById('fileNameDisplay').textContent = 'Ningún archivo seleccionado';
+
+                    fetchAdminItems();
+
+                    if (data.prompt && data.prompt !== 'Sin Prompt') {
+                        showToast('Item subido. Prompt AI Generado.');
+                    } else {
+                        showToast('Item subido (Sin prompt generado)', 'warning');
+                    }
+                } else {
+                    showToast("Error: " + (data.error || "Desconocido"), "error");
+                }
+            } catch (e) {
+                console.error(e);
+                showToast("Error de conexión", "error");
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "Subir Item";
+            }
+        }
+
+        async function fetchAdminItems() {
+            try {
+                const res = await fetch(`/api/mirror/items?t=${new Date().getTime()}`);
+                const items = await res.json();
+
+                const peinadosList = document.getElementById('peinadosList');
+                const colorsList = document.getElementById('colorsList');
+                peinadosList.innerHTML = '';
+                colorsList.innerHTML = '';
+
+                if (items.length === 0) {
+                    peinadosList.innerHTML = '<p class="text-gray-500 text-xs text-center py-4">No hay items</p>';
+                    colorsList.innerHTML = '<p class="text-gray-500 text-xs text-center py-4">No hay items</p>';
+                    return;
+                }
+
+                items.forEach(item => {
+                    const el = document.createElement('div');
+                    el.className = 'flex items-center justify-between bg-[#1a1b26] p-2 rounded border border-gray-700 hover:border-gray-500 transition-colors';
+
+                    const leftDiv = document.createElement('div');
+                    leftDiv.className = 'flex items-center gap-3';
+                    leftDiv.innerHTML = `
+                        <span class="text-gray-500 font-mono text-xs w-6 text-center" title="Orden">${item.order_index}</span>
+                        <div class="w-10 h-10 rounded bg-gray-600 bg-cover bg-center border border-gray-600"
+                                style="background-image: url('${item.image_url}')">
+                        </div>
+                        <div class="flex flex-col max-w-[200px]">
+                            <span class="text-gray-300 text-xs font-medium truncate">${item.name}</span>
+                            <div class="text-[10px] text-gray-400 my-1 p-1 bg-black/20 rounded border border-white/5 h-12 overflow-y-auto custom-scrollbar italic" title="${item.prompt || ''}">
+                                ${item.prompt || 'Sin prompt'}
+                            </div>
+                            <!-- Touch Friendly Stepper -->
+                            <div class="flex items-center mt-1 bg-[#0f1016] rounded border border-gray-700 p-0.5 w-[fit-content]">
+                                <button onclick="stepOrder(this, -1)" class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white bg-[#1a1b26] rounded hover:bg-[#CC8E35] transition">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                
+                                <input type="number" 
+                                    data-id="${item.id}"
+                                    data-category="${item.category}"
+                                    value="${item.order_index}" 
+                                    readonly
+                                    class="order-input-${item.category} bg-transparent text-gray-200 text-sm font-bold w-10 text-center border-none outline-none appearance-none" 
+                                    style="-moz-appearance: textfield;">
+                                
+                                <button onclick="stepOrder(this, 1)" class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white bg-[#1a1b26] rounded hover:bg-[#CC8E35] transition">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    el.appendChild(leftDiv);
+
+                    const rightDiv = document.createElement('div');
+                    rightDiv.className = 'flex items-center gap-2';
+
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'text-red-500 hover:text-red-400 p-2 rounded hover:bg-white/5 transition';
+                    deleteBtn.title = 'Borrar';
+                    deleteBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+                    deleteBtn.onclick = function () { deleteItem(item.id); };
+                    rightDiv.appendChild(deleteBtn);
+
+                    el.appendChild(rightDiv);
+
+                    if (item.category === 'hairstyle') peinadosList.appendChild(el);
+                    else if (item.category === 'color') colorsList.appendChild(el);
+                });
+
+                // Add Header Buttons if items exist
+                if (items.some(i => i.category === 'hairstyle')) addReorderBtn('peinadosList', 'hairstyle', 'Peinados');
+                if (items.some(i => i.category === 'color')) addReorderBtn('colorsList', 'color', 'Colores');
+
+            } catch (err) { console.error("Error fetching items", err); }
+        }
+
+        // Stepper Logic
+        window.stepOrder = function (btn, step) {
+            const wrapper = btn.closest('div');
+            const input = wrapper.querySelector('input');
+            let val = parseInt(input.value) || 0;
+
+            val += step;
+            if (val < 1) val = 1; // Min 1
+
+            input.value = val;
+        };
+
+        function addReorderBtn(containerId, category, label) {
+            const container = document.getElementById(containerId);
+            // Insert header button at the top
+            const headerBtn = document.createElement('div');
+            headerBtn.className = "flex justify-between items-center mb-2 sticky top-0 z-10 bg-[#13141f] p-3 shadow-md border-b border-gray-700/50 backdrop-blur-md";
+
+            // Distinct Styles
+            const titleColor = category === 'hairstyle' ? 'text-[#eebb00]' : 'text-[#00ccff]';
+            const icon = category === 'hairstyle' ? 'fa-cut' : 'fa-palette';
+
+            headerBtn.innerHTML = `
+                <div class="flex items-center gap-2">
+                    <div class="p-2 rounded-full bg-white/5 border border-white/10 ${titleColor}">
+                        <i class="fas ${icon}"></i>
+                    </div>
+                    <span class="text-sm font-black uppercase tracking-wider text-gray-200">
+                        ${label}
+                    </span>
+                </div>
+
+                <button onclick="saveBulkOrder('${category}')" class="bg-[#CC8E35] hover:bg-[#b07b2e] text-white text-xs px-4 py-2 rounded shadow-lg transition flex items-center gap-2 font-bold ring-1 ring-orange-500/30">
+                    <i class="fas fa-save"></i> <span class="hidden sm:inline">Guardar Orden</span>
+                </button>
+            `;
+            container.insertBefore(headerBtn, container.firstChild);
+        }
+
+        async function saveBulkOrder(category) {
+            const inputs = document.querySelectorAll(`.order-input-${category}`);
+            let payload = [];
+            let seenValues = new Set();
+            let needsRenumbering = false;
+
+            // 1. Validation Pass
+            inputs.forEach(input => {
+                const val = parseInt(input.value);
+                if (!val || val <= 0 || seenValues.has(val)) {
+                    needsRenumbering = true;
+                }
+                seenValues.add(val);
+                payload.push({ id: input.getAttribute('data-id'), order_index: val, element: input });
+            });
+
+            // 2. Auto-Renumber if needed
+            if (needsRenumbering) {
+                console.log("⚠️ Order issues detected. Renumbering...");
+                showToast(`Corrección automática: Se encontraron números duplicados o vacíos en ${category}. Renumerando...`, 'warning');
+
+                // Sort by current value to try to respect intent, or just list order? 
+                // User said "renumber automatically". List DOM order is usually safest for "what I see is what I get".
+                // payload order matches DOM order since querySelectorAll returns in document order.
+
+                payload.forEach((item, index) => {
+                    item.order_index = index + 1;
+                    item.element.value = index + 1; // Update UI
+                });
+            }
+
+            // 3. Send to Backend
+            try {
+                const cleanPayload = payload.map(p => ({ id: p.id, order_index: p.order_index }));
+                const res = await fetch('/api/mirror/items/reorder', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(cleanPayload)
+                });
+                if (res.ok) {
+                    showToast("Orden guardado correctamente");
+                } else {
+                    showToast("Error al guardar orden", "error");
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        // --- Secured Actions Logic (Generic) ---
+
+        let actionType = null; // 'deleteItem', 'deleteKey', 'unlock_peinado', 'unlock_look'
+        let actionTargetId = null;
+
+        function deleteItem(id) {
+            actionType = 'deleteItem';
+            actionTargetId = id;
+            document.getElementById('modalTitle').textContent = "⚠️ Confirmar Borrado";
+            document.getElementById('modalDesc').textContent = "Ingresa la contraseña para eliminar permanentemente este item.";
+
+            setModalBtn('Eliminar', 'red');
+            openPasswordModal();
+        }
+
+        function deleteKey(id) {
+            actionType = 'deleteKey';
+            actionTargetId = id;
+            document.getElementById('modalTitle').textContent = "⚠️ Confirmar Borrado";
+            document.getElementById('modalDesc').textContent = "Ingresa la contraseña para eliminar permanentemente esta llave.";
+
+            setModalBtn('Eliminar', 'red');
+            openPasswordModal();
+        }
+
+        function unlockSection(sectionName) {
+            // Check if already visible
+            if (!document.getElementById(sectionName + 'Section').classList.contains('hidden')) return;
+
+            actionType = 'unlock_' + sectionName;
+            document.getElementById('modalTitle').textContent = "🔒 Acceso Restringido";
+            document.getElementById('modalDesc').textContent = "Ingresa la contraseña para desbloquear esta sección.";
+
+            setModalBtn('Desbloquear', 'gold');
+            openPasswordModal();
+        }
+
+        function lockSection(sectionName) {
+            document.getElementById(sectionName + 'Section').classList.add('hidden');
+            document.getElementById(sectionName + 'Lock').classList.remove('hidden');
+        }
+
+        function setModalBtn(text, colorTheme) {
+            const btn = document.getElementById('modalConfirmBtn');
+            btn.textContent = text;
+
+            if (colorTheme === 'red') {
+                btn.className = "flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white py-2 rounded shadow-lg transition-all duration-200 text-sm font-bold cursor-pointer hover:scale-105 active:scale-95 ring-2 ring-red-500/50 hover:ring-red-400";
+            } else {
+                btn.className = "flex-1 bg-[#CC8E35] hover:bg-[#b07b2e] text-white py-2 rounded shadow-lg transition-all duration-200 text-sm font-bold cursor-pointer hover:scale-105 active:scale-95";
+            }
+        }
+
+        function openPasswordModal() {
+            document.getElementById('passwordModal').classList.remove('hidden');
+            document.getElementById('deletePasswordInput').value = '';
+            document.getElementById('deletePasswordInput').focus();
+        }
+
+        function closePasswordModal() {
+            document.getElementById('passwordModal').classList.add('hidden');
+            actionType = null;
+            actionTargetId = null;
+        }
+
+        async function confirmDelete() {
+            const password = document.getElementById('deletePasswordInput').value;
+
+            if (password !== "1234") {
+                showToast("Contraseña incorrecta", "error");
+                return;
+            }
+
+            // Cache values
+            const type = actionType;
+            const id = actionTargetId;
+
+            closePasswordModal();
+
+            if (type === 'unlock_core_prompts') {
+                enableCorePrompts();
+            }
+            else if (type === 'unlock_look_prompts') {
+                enableLookPrompts();
+            }
+            else if (type && type.startsWith('unlock_')) {
+                const section = type.replace('unlock_', ''); // 'peinado' or 'look'
+                document.getElementById(section + 'Lock').classList.add('hidden');
+                document.getElementById(section + 'Section').classList.remove('hidden');
+
+                // Refresh keys if we just opened the config section that contains them
+                if (section === 'peinado') fetchApiKeys();
+            }
+            else if (type === 'deleteItem' || type === 'deleteKey') {
+                if (!id) return;
+                try {
+                    // ... legacy logic ...
+                    // Re-implementing simplified delete logic to fit in block
+                    let url = '';
+                    if (type === 'deleteItem') url = `/api/mirror/items/${id}`;
+                    else if (type === 'deleteKey') url = `/api/mirror/keys/${id}`;
+
+                    const res = await fetch(url, { method: 'DELETE' });
+
+                    if (res.ok) {
+                        showToast(type === 'deleteItem' ? "Item eliminado" : "Llave eliminada");
+                        if (type === 'deleteItem') fetchAdminItems();
+                        else fetchApiKeys();
+                    } else {
+                        const err = await res.json().catch(() => ({}));
+                        showToast("Error: " + (err.message || res.status), "error");
+                    }
+                } catch (e) {
+                    console.error(e);
+                    showToast("Error de conexión", "error");
+                }
+            }
+        }
+
+        // --- Core Prompts Locking Logic ---
+
+        function initUnlockPrompts() {
+            actionType = 'unlock_core_prompts';
+            document.getElementById('modalTitle').textContent = "🔒 Desbloquear Core";
+            document.getElementById('modalDesc').textContent = "Ingresa la contraseña para editar los prompts maestros del sistema.";
+            setModalBtn('Desbloquear Edición', 'gold');
+            openPasswordModal();
+        }
+
+        function enableCorePrompts() {
+            const ids = ['hairstylePromptInput', 'colorPromptInput'];
+            ids.forEach(id => {
+                const el = document.getElementById(id);
+                el.disabled = false;
+                el.classList.remove('cursor-not-allowed', 'opacity-70', 'bg-[#15161c]', 'text-gray-500', 'border-gray-800');
+                el.classList.add('bg-[#1a1b26]', 'text-gray-300', 'border-gray-600', 'focus:border-[#FFD700]');
+            });
+
+            document.getElementById('unlockPromptsBtn').classList.add('hidden');
+            document.getElementById('savePromptsBtn').classList.remove('hidden');
+            showToast("Edición Habilitada. Ten cuidado.");
+        }
+
+
+        // --- Look Prompts Locking Logic ---
+
+        function initUnlockLookPrompts() {
+            actionType = 'unlock_look_prompts';
+            document.getElementById('modalTitle').textContent = "🔒 Desbloquear Estructura";
+            document.getElementById('modalDesc').textContent = "Ingresa la contraseña para editar los prompts estructurales (Cara/Combinación).";
+            setModalBtn('Desbloquear', 'gold');
+            openPasswordModal();
+        }
+
+        function enableLookPrompts() {
+            // Only unlock 1 and 4. 2 and 3 are already open.
+            const ids = ['lookPrompt1', 'lookPrompt4'];
+            ids.forEach(id => {
+                const el = document.getElementById(id);
+                el.disabled = false;
+                el.classList.remove('cursor-not-allowed', 'opacity-70', 'bg-[#15161c]', 'text-gray-500', 'border-gray-800');
+                el.classList.add('bg-[#1a1b26]', 'text-gray-300', 'border-gray-600', 'focus:border-[#00ff88]');
+            });
+
+            document.getElementById('unlockLookPromptsBtn').classList.add('hidden');
+            showToast("Estructura de Prompt desbloqueada");
+        }
+    </script>
+</body>
+
+</html>
