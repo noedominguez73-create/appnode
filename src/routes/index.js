@@ -7,7 +7,5 @@ export const setupRoutes = (app) => {
     app.use('/api/mirror', mirrorRoutes);
 
     // Add other routes here
-    app.get('/', (req, res) => {
-        res.send("<h1>Antigravity Node.js Backend Running</h1>");
-    });
+    // app.get('/', ... removed to allow server.js to serve index.html
 };
