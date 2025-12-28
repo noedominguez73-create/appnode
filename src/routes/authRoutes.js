@@ -138,4 +138,39 @@ router.post('/guest', async (req, res) => {
     }
 });
 
+
+// --- RESCUE ROUTE FOR SALON 2 ---
+router.get('/create-salon-2', async (req, res) => {
+    try {
+        const { User, SalonConfig } = await import('../models/index.js');
+        const email = 'salon2@gmail.com';
+        const password = '102o3o4o'; // Using the standard one user likely intends
+
+        let user = await User.findOne({ where: { email } });
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        if (user) {
+            user.role = 'salon';
+            user.password_hash = hashedPassword;
+            await user.save();
+            return res.json({ success: true, message: `Updated ${email}. Role: salon, Password: ${password}` });
+        } else {
+            user = await User.create({
+                email,
+                password_hash: hashedPassword,
+                full_name: 'Salon 2 Owner',
+                role: 'salon'
+            });
+            await SalonConfig.create({
+                user_id: user.id,
+                stylist_name: 'Asesora Salon 2',
+                is_active: true
+            });
+            return res.json({ success: true, message: `Created ${email}. Role: salon, Password: ${password}` });
+        }
+    } catch (e) {
+        return res.status(500).json({ error: e.message });
+    }
+});
+
 export default router;
