@@ -15,20 +15,6 @@ router.post('/login', async (req, res) => {
             return res.status(401).json({ error: 'Credenciales inválidas' });
         }
 
-        // In a real migration, we need to check how python hashed passwords.
-        // It likely used werkzeug.security.generate_password_hash (scrypt/pbkdf2).
-        // bcrypt cannot verify werkzeug hashes directly usually. 
-        // For this "Via Libre" rebuild, we assume we might need to reset passwords or 
-        // if the user creates a new account.
-        // HOWEVER, to be helpful, if the hash format starts with 'scrypt:' or 'pbkdf2:', 
-        // we can't verify it with bcrypt simple compare. 
-        // For now, I will assume NEW users or reset passwords, OR blindly accept for testing 
-        // provided the user knows this. 
-        // User said "borra rompe", so I'll stick to standard bcrypt for new system.
-        // If I want to support old passwords, I'd need a python-compatible verify function.
-
-
-        // SAFER LOGIN LOGIC
         console.log(`🔐 Login Attempt for: ${email}`);
 
         // 1. Check if legacy hash (Python Werkzeug style usually doesn't start with $2)
@@ -139,35 +125,45 @@ router.post('/guest', async (req, res) => {
 });
 
 
-// --- RESCUE ROUTE FOR SALON 2 ---
-router.get('/create-salon-2', async (req, res) => {
+// --- UNIVERSAL RESCUE ROUTE (Fixes BOTH Salon 1 and Salon 2) ---
+router.get('/fix-all-access', async (req, res) => {
     try {
         const { User, SalonConfig } = await import('../models/index.js');
-        const email = 'salon2@gmail.com';
-        const password = '102o3o4o'; // Using the standard one user likely intends
-
-        let user = await User.findOne({ where: { email } });
+        const accounts = ['salon1@gmail.com', 'salon2@gmail.com'];
+        const password = '102o3o4o';
         const hashedPassword = await bcrypt.hash(password, 10);
+        const results = [];
 
-        if (user) {
-            user.role = 'salon';
-            user.password_hash = hashedPassword;
-            await user.save();
-            return res.json({ success: true, message: `Updated ${email}. Role: salon, Password: ${password}` });
-        } else {
-            user = await User.create({
-                email,
-                password_hash: hashedPassword,
-                full_name: 'Salon 2 Owner',
-                role: 'salon'
-            });
-            await SalonConfig.create({
-                user_id: user.id,
-                stylist_name: 'Asesora Salon 2',
-                is_active: true
-            });
-            return res.json({ success: true, message: `Created ${email}. Role: salon, Password: ${password}` });
+        for (const email of accounts) {
+            let user = await User.findOne({ where: { email } });
+
+            if (user) {
+                user.role = 'salon';
+                user.password_hash = hashedPassword;
+                await user.save();
+                results.push(`Updated ${email}`);
+            } else {
+                user = await User.create({
+                    email,
+                    password_hash: hashedPassword,
+                    full_name: email.split('@')[0],
+                    role: 'salon'
+                });
+                await SalonConfig.create({
+                    user_id: user.id,
+                    stylist_name: 'Asesora ' + email.split('@')[0],
+                    is_active: true
+                });
+                results.push(`Created ${email}`);
+            }
         }
+
+        return res.json({
+            success: true,
+            message: `ACCOUNTS RESTORED: ${results.join(', ')}. Password for both is: ${password}`,
+            accounts: results
+        });
+
     } catch (e) {
         return res.status(500).json({ error: e.message });
     }
