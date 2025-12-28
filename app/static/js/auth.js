@@ -180,6 +180,10 @@ function redirectToDashboard() {
         case 'tienda':
             window.location.href = '/tienda';
             break;
+        case 'salon':
+        case 'owner':
+            window.location.href = '/admin'; // Start with Admin Mirror panel
+            break;
         default:
             window.location.href = '/';
     }
