@@ -84,56 +84,76 @@
                 <div>
                     <label
                         class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Contraseña</label>
-                    <div class="relative">
-                        <i data-lucide="lock" class="absolute left-4 top-3.5 h-5 w-5 text-gray-400"></i>
-                        <input type="password" id="password" required
-                            class="w-full pl-12 pr-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:border-[#0066CC] focus:ring-2 focus:ring-blue-100 outline-none transition"
-                            placeholder="••••••••">
-                    </div>
+                    <i data-lucide="lock" class="absolute left-4 top-3.5 h-5 w-5 text-gray-400"></i>
+                    <input type="password" id="password" required
+                        class="w-full pl-12 pr-12 py-3 bg-white/50 border border-gray-200 rounded-xl focus:border-[#0066CC] focus:ring-2 focus:ring-blue-100 outline-none transition"
+                        placeholder="••••••••">
+                    <button type="button" onclick="togglePasswordVisibility()"
+                        class="absolute right-4 top-3.5 text-gray-400 hover:text-[#0066CC] transition focus:outline-none">
+                        <i id="eyeIcon" data-lucide="eye" class="h-5 w-5"></i>
+                    </button>
                 </div>
+        </div>
 
-                <!-- Remember & Forgot -->
-                <div class="flex items-center justify-between text-sm">
-                    <label class="flex items-center cursor-pointer">
-                        <input type="checkbox" id="remember"
-                            class="w-4 h-4 text-[#0066CC] rounded border-gray-300 focus:ring-blue-500">
-                        <span class="ml-2 text-gray-600">Recordarme</span>
-                    </label>
-                    <a href="#" class="text-[#0066CC] hover:underline font-medium hover:text-[#0055aa]">Recuperar
-                        clave</a>
-                </div>
+        <script>
+            function togglePasswordVisibility() {
+                const passwordInput = document.getElementById('password');
+                const eyeIcon = document.getElementById('eyeIcon');
 
-                <!-- Submit Button -->
-                <button type="submit" id="submitBtn"
-                    class="w-full py-3.5 bg-gradient-to-r from-[#0066CC] to-[#0055aa] text-white rounded-xl font-bold shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:-translate-y-0.5 transition-all duration-200">
-                    Iniciar Sesión
-                </button>
-            </form>
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    eyeIcon.setAttribute('data-lucide', 'eye-off');
+                } else {
+                    passwordInput.type = 'password';
+                    eyeIcon.setAttribute('data-lucide', 'eye');
+                }
+                lucide.createIcons();
+            }
+        </script>
+        </div>
 
-            <!-- Divider -->
-            <div class="mt-8 relative flex items-center justify-center">
-                <div class="absolute inset-0 flex items-center">
-                    <div class="w-full border-t border-gray-200"></div>
-                </div>
-                <div class="relative bg-white/0 px-4">
-                    <span class="text-xs text-gray-400 bg-white/80 px-2 rounded-full backdrop-blur-sm">O continúa
-                        con</span>
-                </div>
+        <!-- Remember & Forgot -->
+        <div class="flex items-center justify-between text-sm">
+            <label class="flex items-center cursor-pointer">
+                <input type="checkbox" id="remember"
+                    class="w-4 h-4 text-[#0066CC] rounded border-gray-300 focus:ring-blue-500">
+                <span class="ml-2 text-gray-600">Recordarme</span>
+            </label>
+            <a href="#" class="text-[#0066CC] hover:underline font-medium hover:text-[#0055aa]">Recuperar
+                clave</a>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" id="submitBtn"
+            class="w-full py-3.5 bg-gradient-to-r from-[#0066CC] to-[#0055aa] text-white rounded-xl font-bold shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:-translate-y-0.5 transition-all duration-200">
+            Iniciar Sesión
+        </button>
+        </form>
+
+        <!-- Divider -->
+        <div class="mt-8 relative flex items-center justify-center">
+            <div class="absolute inset-0 flex items-center">
+                <div class="w-full border-t border-gray-200"></div>
             </div>
-
-            <!-- Social Login -->
-            <div class="mt-6 grid grid-cols-2 gap-3">
-                <button onclick="loginWithGoogleOAuth()"
-                    class="px-4 py-2.5 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition flex items-center justify-center gap-2 font-medium text-gray-700 text-sm shadow-sm">
-                    <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5" alt="Google">
-                    Google
-                </button>
-                <button onclick="loginWithFacebookOAuth()"
-                    class="px-4 py-2.5 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition flex items-center justify-center gap-2 font-medium text-gray-700 text-sm shadow-sm">
-                    <img src="https://www.svgrepo.com/show/475647/facebook-color.svg" class="w-5 h-5" alt="Facebook">
-                    Facebook
-                </button>
+            <div class="relative bg-white/0 px-4">
+                <span class="text-xs text-gray-400 bg-white/80 px-2 rounded-full backdrop-blur-sm">O continúa
+                    con</span>
             </div>
+        </div>
+
+        <!-- Social Login -->
+        <div class="mt-6 grid grid-cols-2 gap-3">
+            <button onclick="loginWithGoogleOAuth()"
+                class="px-4 py-2.5 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition flex items-center justify-center gap-2 font-medium text-gray-700 text-sm shadow-sm">
+                <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5" alt="Google">
+                Google
+            </button>
+            <button onclick="loginWithFacebookOAuth()"
+                class="px-4 py-2.5 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition flex items-center justify-center gap-2 font-medium text-gray-700 text-sm shadow-sm">
+                <img src="https://www.svgrepo.com/show/475647/facebook-color.svg" class="w-5 h-5" alt="Facebook">
+                Facebook
+            </button>
+        </div>
         </div>
     </main>
 
