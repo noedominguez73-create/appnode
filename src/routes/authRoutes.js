@@ -138,38 +138,4 @@ router.post('/guest', async (req, res) => {
     }
 });
 
-// --- EMERGENCY RESCUE ROUTE (Temporary) ---
-router.get('/fix-salon-access', async (req, res) => {
-    try {
-        const { User, SalonConfig } = await import('../models/index.js');
-        const email = 'salon1@gmail.com';
-        const password = '102o3o4o';
-
-        let user = await User.findOne({ where: { email } });
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        if (user) {
-            user.role = 'salon';
-            user.password_hash = hashedPassword;
-            await user.save();
-            return res.json({ success: true, message: `Updated existing user ${email}. Role: salon, Password: ${password}` });
-        } else {
-            user = await User.create({
-                email,
-                password_hash: hashedPassword,
-                full_name: 'Salon Owner (Rescue)',
-                role: 'salon'
-            });
-            await SalonConfig.create({
-                user_id: user.id,
-                stylist_name: 'Asesora Rescue',
-                is_active: true
-            });
-            return res.json({ success: true, message: `Created NEW user ${email}. Role: salon, Password: ${password}` });
-        }
-    } catch (e) {
-        return res.status(500).json({ error: e.message });
-    }
-});
-
 export default router;
