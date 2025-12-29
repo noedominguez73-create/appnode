@@ -53,49 +53,11 @@ app.use('/', express.static(path.join(__dirname, 'app/templates')));
 
 // Initialize DB and SEED Default Admin
 // Pre-Sync Check for Permissions
+// Initialize DB and SEED Default Admin
+// Pre-Sync Check for Permissions
 try {
-    const dbDir = path.join(__dirname, 'database');
-    const dbFile = path.join(dbDir, 'mirror.db');
-
-    console.log("🔍 DIAGNOSTIC: Checking permissions...");
+    console.log("🔍 DIAGNOSTIC: Starting Server...");
     console.log("   Process UID:", process.getuid ? process.getuid() : 'N/A (Windows?)');
-
-    // Check Dir Write
-    try {
-        fs.accessSync(dbDir, fs.constants.W_OK);
-        console.log("   ✅ Directory 'database' is WRITABLE.");
-    } catch (e) {
-        console.error("   ❌ Directory 'database' is NOT WRITABLE:", e.message);
-    }
-
-    // Check File Write & Fix
-    if (fs.existsSync(dbFile)) {
-        try {
-            fs.accessSync(dbFile, fs.constants.W_OK);
-            console.log("   ✅ Database file is WRITABLE.");
-        } catch (e) {
-            console.warn("   ⚠️ Database file is READ-ONLY. Attempting automatic fix...");
-            try {
-                fs.chmodSync(dbFile, 0o666);
-                console.log("   ✅ FIXED: Permissions updated to 0o666.");
-            } catch (err) {
-                console.error("   ❌ FIX FAILED: Could not chmod database:", err.message);
-            }
-        }
-    }
-
-    // Check File Write (if exists)
-    if (fs.existsSync(dbFile)) {
-        try {
-            fs.accessSync(dbFile, fs.constants.W_OK);
-            console.log("   ✅ File 'mirror.db' is WRITABLE.");
-        } catch (e) {
-            console.error("   ❌ File 'mirror.db' is NOT WRITABLE:", e.message);
-        }
-    } else {
-        console.log("   ℹ️ 'mirror.db' does not exist yet (will be created).");
-    }
-
 } catch (e) {
     console.error("Diagnostic Check Failed:", e);
 }
