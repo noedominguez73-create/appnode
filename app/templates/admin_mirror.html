@@ -368,7 +368,19 @@
                             const keysRes = await fetch(`/api/mirror/keys?section=${section}`);
                             const keys = await keysRes.json();
                             const activeKey = (Array.isArray(keys) ? keys : []).find(k => k.provider === 'google' && k.is_active);
-                            const savedModel = activeKey && activeKey.settings ? activeKey.settings.model : null;
+
+                            // Parse settings JSON to get saved model
+                            let savedModel = null;
+                            if (activeKey && activeKey.settings) {
+                                try {
+                                    const settings = typeof activeKey.settings === 'string'
+                                        ? JSON.parse(activeKey.settings)
+                                        : activeKey.settings;
+                                    savedModel = settings.model || null;
+                                } catch (e) {
+                                    console.warn('Failed to parse settings:', e);
+                                }
+                            }
 
                             select.innerHTML = '';
                             const defaultOpt = document.createElement('option');
