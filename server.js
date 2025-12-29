@@ -10,9 +10,15 @@ import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
-import { sequelize } from './src/config/database.js';
-import { setupRoutes } from './src/routes/index.js';
-import { User, SalonConfig } from './src/models/index.js';
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+// import { sequelize } from './src/config/database.js'; // REMOVED STATIC IMPORT
+// import { setupRoutes } from './src/routes/index.js'; // REMOVED STATIC IMPORT
+// import { User, SalonConfig } from './src/models/index.js'; // REMOVED STATIC IMPORT
 import bcrypt from 'bcryptjs';
 
 // Configuration
@@ -23,91 +29,96 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// DIAGNOSTIC HEALTH CHECK (Bypasses DB/Auth)
-app.get('/health', (req, res) => res.status(200).send(`Server is ALIVE! Time: ${new Date().toISOString()}`));
+// ==========================================
+// 🚨 CRITICAL: HEALTH CHECK MUST BE FIRST 🚨
+// ==========================================
+app.get('/health', (req, res) => {
+    res.status(200).send(`Server is ALIVE! Mode: ${global.APP_MODE || 'BOOTING'} - Time: ${new Date().toISOString()}`);
+});
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// --- HOTFIX FOR BROKEN CACHED URLS ---
-app.use((req, res, next) => {
-    // Detect " / fotografia " or similar space-polluted URLs
-    if (req.url.includes('%20fotografia') || req.url.includes(' fotografia')) {
-        console.log("🔥 HOTFIX: Redirecting malformed URL:", req.url);
-        // Clean the URL: remove spaces and normalize
-        // We know the target is /fotografia + query params
-        // Extract query params if any
-        const parts = req.url.split('?');
-        const query = parts.length > 1 ? '?' + parts[1].replace(/%20/g, '').replace(/\s/g, '') : '';
-        // Redirect to clean /fotografia
-        return res.redirect('/fotografia' + query);
-    }
-    next();
-});
-
 // Static Files
 app.use('/static', express.static(path.join(__dirname, 'app/static')));
 app.use('/', express.static(path.join(__dirname, 'app/templates')));
 
-// Initialize DB and SEED Default Admin
-// Pre-Sync Check for Permissions
-try {
-    console.log("🔍 DIAGNOSTIC: Starting Server...");
-    console.log("   Process UID:", process.getuid ? process.getuid() : 'N/A (Windows?)');
-} catch (e) {
-    console.error("Diagnostic Check Failed:", e);
+// ==========================================
+// 🚀 ASYNC APPLICATION LOADER
+// ==========================================
+let serverInstance;
+
+async function startApp() {
+    try {
+        console.log("🚀 STARTING SERVER (Safe Mode)...");
+
+        // 1. Start Listening FIRST (To pass Hostinger Health Checks)
+        serverInstance = app.listen(PORT, async () => {
+            console.log(`✅ Server bound to port ${PORT}`);
+            console.log(`🌍 Frontend accessible at http://localhost:${PORT}`);
+
+            // 2. Dynamically Load App Logic
+            try {
+                console.log("⏳ Loading Database Module...");
+                const { sequelize } = await import('./src/config/database.js');
+
+                console.log("⏳ Testing Database Connection...");
+                await sequelize.authenticate();
+                console.log("✅ DB Connection ESTABLISHED.");
+
+                console.log("⏳ Loading Models...");
+                const { User, SalonConfig } = await import('./src/models/index.js');
+
+                console.log("⏳ Syncing Database...");
+                await sequelize.sync({ alter: true });
+                console.log("✅ DB Synced.");
+
+                // Seeder Logic
+                const userCount = await User.count();
+                if (userCount === 0) {
+                    console.log("🌱 Seeding Admin...");
+                    const hashedPassword = await bcrypt.hash('admin123', 10);
+                    const admin = await User.create({
+                        email: 'admin@imagina.ia',
+                        password_hash: hashedPassword,
+                        full_name: 'Admin Mirror',
+                        role: 'admin',
+                        monthly_token_limit: 1000,
+                        current_month_tokens: 0
+                    });
+                    await SalonConfig.create({
+                        user_id: admin.id,
+                        stylist_name: 'Asesora IA',
+                        primary_color: '#00ff88',
+                        secondary_color: '#00ccff',
+                        stylist_voice_name: 'Aoede',
+                        is_active: true
+                    });
+                }
+
+                console.log("⏳ Loading Routes...");
+                const { setupRoutes } = await import('./src/routes/index.js');
+                setupRoutes(app);
+                console.log("✅ Routes Loaded Successfully.");
+
+                global.APP_MODE = 'ONLINE';
+
+            } catch (innerError) {
+                console.error("❌ CRITICAL APP FAILURE:", innerError);
+                global.APP_MODE = 'CRASHED_BUT_ALIVE';
+                // Server stays running to serve /health and logs
+            }
+        });
+
+    } catch (e) {
+        console.error("❌ FATAL SERVER STARTUP ERROR:", e);
+    }
 }
 
-// --- DB INITIALIZATION WITH SAFETY CHECKS ---
-(async () => {
-    try {
-        console.log("⏳ Testing Database Connection...");
-        await sequelize.authenticate();
-        console.log("✅ Connection has been established successfully.");
-
-        console.log("⏳ Syncing Database Models...");
-        await sequelize.sync({ alter: true });
-        console.log("✅ Database synced successfully.");
-
-        // --- SEEDER LOGIC ---
-        const userCount = await User.count();
-        if (userCount === 0) {
-            console.log("🌱 Fresh Database detected. Seeding Default Admin...");
-            const hashedPassword = await bcrypt.hash('admin123', 10);
-
-            // Create Admin User (ID 1)
-            const admin = await User.create({
-                email: 'admin@imagina.ia',
-                password_hash: hashedPassword,
-                full_name: 'Admin Mirror',
-                role: 'admin',
-                monthly_token_limit: 1000,
-                current_month_tokens: 0
-            });
-            console.log("✅ Admin User Created:", admin.email);
-
-            // Create Default Salon Config for Admin
-            await SalonConfig.create({
-                user_id: admin.id,
-                stylist_name: 'Asesora IA',
-                primary_color: '#00ff88',
-                secondary_color: '#00ccff',
-                stylist_voice_name: 'Aoede',
-                is_active: true
-            });
-            console.log("✅ Default SalonConfig Created.");
-        }
-
-    } catch (error) {
-        console.error("❌ DATABASE FATAL ERROR:", error.message);
-        console.error("   (Server will continue running in Limited Mode)");
-    }
-})();
-
-// Routes
-setupRoutes(app);
+// Start the sequence
+startApp();
 
 // Serve HTML Pages
 app.get('/', (req, res) => {
