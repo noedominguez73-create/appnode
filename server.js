@@ -17,6 +17,9 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// DIAGNOSTIC HEALTH CHECK (Bypasses DB/Auth)
+app.get('/health', (req, res) => res.status(200).send(`Server is ALIVE! Time: ${new Date().toISOString()}`));
+
 // Middleware
 app.use(cors());
 app.use(express.json());

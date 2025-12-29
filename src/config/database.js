@@ -32,7 +32,7 @@ export const sequelize = new Sequelize(
     process.env.DB_USER || 'u182581262_terminal',
     process.env.DB_PASS || 'WeK6#VY54+JU4Kn',
     {
-        host: process.env.DB_HOST || '127.0.0.1', // Use Localhost internal IP
+        host: process.env.DB_HOST || 'localhost', // User Config Logic
         dialect: 'mysql', // Force MySQL, ignore SQLite fallback
         logging: false,
         dialectOptions: {
