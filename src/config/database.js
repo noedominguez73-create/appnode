@@ -21,12 +21,13 @@ require('dotenv').config();
 // CONFIGURATION VALIDATION
 // ==========================================
 
+// TEMPORARY: Hardcoded credentials to test bypassing env vars
 const config = {
-    host: process.env.DB_HOST || '127.0.0.1',
-    user: process.env.DB_USER || 'u182581262_terminal',
-    name: process.env.DB_NAME || 'u182581262_appnode',
-    pass: process.env.DB_PASS || '',
-    port: parseInt(process.env.DB_PORT, 10) || 3306
+    host: '127.0.0.1',
+    user: 'u182581262_terminal',
+    name: 'u182581262_appnode',
+    pass: 'WeK6#VY54+JU4Kn',
+    port: 3306
 };
 
 // Log configuration (without password)
@@ -34,6 +35,7 @@ console.log('🔌 MySQL Configuration:');
 console.log(`   Host: ${config.host}:${config.port}`);
 console.log(`   User: ${config.user}`);
 console.log(`   Database: ${config.name}`);
+console.log(`   Password: ${config.pass ? '***SET***' : '***NOT SET***'}`);
 
 // ==========================================
 // SEQUELIZE INSTANCE
