@@ -1,96 +1,51 @@
 const { Sequelize } = require('sequelize');
-require('dotenv').config();
 
 /**
  * ==========================================
- * DATABASE CONFIGURATION (MySQL + Sequelize)
+ * DATABASE CONFIGURATION - HARDCODED FOR DEBUGGING
  * ==========================================
- * 
- * Production-ready configuration for Hostinger MySQL.
- * All credentials should be defined in environment variables.
- * 
- * Required ENV Variables:
- * - DB_HOST: Database host (e.g., 127.0.0.1)
- * - DB_USER: Database username
- * - DB_NAME: Database name
- * - DB_PASS: Database password
- * - DB_PORT: (Optional) Database port, defaults to 3306
  */
 
-// ==========================================
-// CONFIGURATION VALIDATION
-// ==========================================
-
-// TEMPORARY: Hardcoded credentials to test bypassing env vars
-const config = {
-    host: '127.0.0.1',
-    user: 'u182581262_terminal',
-    name: 'u182581262_appnode',
-    pass: 'WeK6#VY54+JU4Kn',
-    port: 3306
-};
-
-// Log configuration (without password)
-console.log('🔌 MySQL Configuration:');
-console.log(`   Host: ${config.host}:${config.port}`);
-console.log(`   User: ${config.user}`);
-console.log(`   Database: ${config.name}`);
-console.log(`   Password: ${config.pass ? '***SET***' : '***NOT SET***'}`);
-
-// ==========================================
-// SEQUELIZE INSTANCE
-// ==========================================
+console.log('🔌 Initializing Database Connection...');
+console.log('   FORCING HARDCODED CREDENTIALS (DEBUG MODE)');
 
 const sequelize = new Sequelize(
-    config.name,
-    config.user,
-    config.pass,
+    'u182581262_appnode',      // database
+    'u182581262_terminal',      // username
+    'WeK6#VY54+JU4Kn',         // password
     {
-        host: config.host,
-        port: config.port,
+        host: '127.0.0.1',
+        port: 3306,
         dialect: 'mysql',
 
-        // Logging: Disable in production, enable for debugging
-        logging: process.env.NODE_ENV === 'development' ? console.log : false,
+        logging: false,
 
-        // Connection Pool Configuration
         pool: {
-            max: 10,           // Maximum connections
-            min: 0,            // Minimum connections
-            acquire: 30000,    // Max time (ms) to acquire connection
-            idle: 10000        // Max idle time before release
+            max: 10,
+            min: 0,
+            acquire: 30000,
+            idle: 10000
         },
 
-        // MySQL-specific options
         dialectOptions: {
-            // FORCE IPv4 (prevents Node.js from using ::1 instead of 127.0.0.1)
-            family: 4,
-
-            connectTimeout: 10000,  // 10 seconds timeout
-
-            // SSL Configuration (disabled for local/Hostinger shared)
+            family: 4,              // Force IPv4
+            connectTimeout: 10000,
             ssl: false,
-
-            // Character set for proper UTF-8 support
             charset: 'utf8mb4',
-
-            // Timezone handling
             timezone: '+00:00'
         },
 
-        // Query options
         define: {
-            timestamps: true,           // Adds createdAt/updatedAt
-            underscored: false,         // Use camelCase (not snake_case)
-            freezeTableName: true,      // Don't pluralize table names
+            timestamps: true,
+            underscored: false,
+            freezeTableName: true,
             charset: 'utf8mb4',
             collate: 'utf8mb4_unicode_ci'
         },
 
-        // Retry configuration
         retry: {
-            max: 3,                     // Max retry attempts
-            match: [                    // Retry on these errors
+            max: 3,
+            match: [
                 /ETIMEDOUT/,
                 /ECONNRESET/,
                 /ENOTFOUND/,
@@ -101,14 +56,12 @@ const sequelize = new Sequelize(
     }
 );
 
-// ==========================================
-// CONNECTION TESTING (Optional)
-// ==========================================
+console.log('✅ Sequelize instance created with HARDCODED credentials');
+console.log('   DB: u182581262_appnode');
+console.log('   User: u182581262_terminal');
+console.log('   Host: 127.0.0.1:3306');
+console.log('   Password: ***HARDCODED***');
 
-/**
- * Test database connection
- * @returns {Promise<boolean>} Connection status
- */
 async function testConnection() {
     try {
         await sequelize.authenticate();
@@ -116,16 +69,8 @@ async function testConnection() {
         return true;
     } catch (error) {
         console.error('❌ Database connection failed:', error.message);
-        console.error('   Check your DB_HOST, DB_USER, DB_PASS, and DB_NAME environment variables.');
         return false;
     }
 }
 
-// ==========================================
-// EXPORTS
-// ==========================================
-
-module.exports = {
-    sequelize,
-    testConnection
-};
+module.exports = { sequelize, testConnection };
