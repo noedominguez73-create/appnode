@@ -251,6 +251,213 @@
                 </div>
             </div>
 
+            <!-- Protected API Section Toggle -->
+            <!-- Protected Section 1: Peinado Toggle -->
+            <div id="peinadoLock"
+                class="bg-[#242636] p-4 rounded-lg border border-gray-700 mb-4 flex justify-between items-center cursor-pointer hover:bg-[#2a2d40] transition"
+                onclick="unlockSection('peinado')">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-gray-700 rounded text-gray-400">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-gray-300 text-sm font-bold">Configuración de Peinado</h4>
+                        <p class="text-xs text-gray-500">Gestión de Llaves y Modelos AI</p>
+                    </div>
+                </div>
+                <i class="fas fa-chevron-right text-gray-500"></i>
+            </div>
+
+            <!-- Section 2.5: Configuración APIs (HIDDEN) -->
+            <!-- Section 1: Configuración de Peinado (HIDDEN) -->
+            <div id="peinadoSection"
+                class="hidden bg-[#242636] p-6 rounded-lg border border-gray-700 mb-8 relative overflow-hidden transition-all duration-500">
+                <div class="absolute top-0 right-0 p-4 opacity-10">
+                    <i class="fas fa-cut text-6xl text-[#FFD700]"></i>
+                </div>
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-[#FFD700] font-bold text-sm flex items-center gap-2">
+                        <i class="fas fa-cut"></i> Configuración de Peinado
+                    </h3>
+                    <button onclick="lockSection('peinado')" class="text-gray-500 hover:text-white text-xs">
+                        <i class="fas fa-eye-slash"></i> Ocultar
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Google Gemini Config -->
+                    <div class="bg-[#1a1b26] p-4 rounded border border-gray-600">
+                        <div class="flex justify-between items-center mb-4">
+                            <h4 class="text-white text-sm font-bold flex items-center gap-2">
+                                <i class="fab fa-google"></i> Google Gemini
+                            </h4>
+                            <button onclick="toggleKeyForm('google')"
+                                class="text-[10px] bg-[#FFD700] text-black px-2 py-1 rounded font-bold hover:bg-yellow-400">
+                                <i class="fas fa-plus"></i> Nueva Llave
+                            </button>
+                        </div>
+
+                        <!-- Add New Key Form -->
+                        <div id="googleAddForm" class="hidden mb-4 p-3 bg-[#0f1016] rounded border border-gray-700">
+                            <div class="flex flex-col gap-2">
+                                <input type="text" id="googleAliasInput" placeholder="Nombre (ej. Dev, Producción)"
+                                    class="bg-[#1a1b26] text-white text-xs border border-gray-600 rounded px-2 py-1 outline-none focus:border-[#FFD700]">
+                                <input type="password" id="googleKeyInput" placeholder="Pegar API Key..."
+                                    class="bg-[#1a1b26] text-white text-xs border border-gray-600 rounded px-2 py-1 outline-none focus:border-[#FFD700]">
+                                <div class="flex justify-end gap-2">
+                                    <button onclick="toggleKeyForm('google')"
+                                        class="text-gray-400 text-[10px] hover:text-white">Cancelar</button>
+                                    <button onclick="saveApiKey('google')"
+                                        class="bg-[#2E8B57] text-white px-2 py-1 rounded text-[10px]">Guardar</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Keys List -->
+                        <div id="googleKeysList" class="flex flex-col gap-2 max-h-40 overflow-y-auto pr-1">
+                            <div class="text-gray-500 text-[10px] text-center italic">Cargando llaves...</div>
+                        </div>
+                    </div>
+
+                    <!-- Model Selection Panel -->
+                    <div class="bg-[#1a1b26] p-4 rounded border border-gray-600 flex flex-col gap-4">
+                        <div class="flex justify-between items-center">
+                            <h4 class="text-white text-sm font-bold flex items-center gap-2">
+                                <i class="fas fa-brain"></i> Modelo Activo
+                            </h4>
+                            <button onclick="fetchModels()" title="Refrescar lista desde Google"
+                                class="text-gray-400 hover:text-[#FFD700] transition">
+                                <i class="fas fa-sync-alt text-xs"></i>
+                            </button>
+                        </div>
+
+                        <div class="relative">
+                            <select id="modelSelect"
+                                class="w-full bg-[#0f1016] text-white text-xs border border-gray-600 rounded px-3 py-2 outline-none focus:border-[#FFD700] appearance-none cursor-pointer">
+                                <option value="" disabled selected>Cargando modelos...</option>
+                            </select>
+                            <div class="absolute right-3 top-2 pointer-events-none text-gray-500">
+                                <i class="fas fa-chevron-down text-xs"></i>
+                            </div>
+                        </div>
+
+                        <button onclick="saveModelSelection()"
+                            class="w-full bg-[#CC8E35] hover:bg-[#b07b2e] text-white text-xs font-bold py-2 rounded transition shadow-lg">
+                            Guardar Preferencia
+                        </button>
+                    </div>
+                </div>
+
+                <script>
+                    async function fetchModels(section = 'peinado') {
+                        // Determine select ID based on section
+                        let selectId = 'modelSelect';
+                        if (section === 'look') selectId = 'lookModelSelect';
+                        if (section === 'asesoria') selectId = 'asesoriaModelSelect';
+
+                        const select = document.getElementById(selectId);
+                        if (!select) return; // Guard
+                        select.innerHTML = '<option>Cargando...</option>';
+
+                        try {
+                            const res = await fetch(`/api/mirror/models?section=${section}`);
+                            const models = await res.json();
+                            if (!res.ok) throw new Error(models.error || 'Error al cargar modelos');
+
+                            // Fetch active key for this section
+                            const keysRes = await fetch(`/api/mirror/keys?section=${section}`);
+                            const keys = await keysRes.json();
+                            const activeKey = (Array.isArray(keys) ? keys : []).find(k => k.provider === 'google' && k.is_active);
+
+                            // Parse settings JSON to get saved model
+                            let savedModel = null;
+                            if (activeKey && activeKey.settings) {
+                                try {
+                                    const settings = typeof activeKey.settings === 'string'
+                                        ? JSON.parse(activeKey.settings)
+                                        : activeKey.settings;
+                                    savedModel = settings.model || null;
+                                } catch (e) {
+                                    console.warn('Failed to parse settings:', e);
+                                }
+                            }
+
+                            select.innerHTML = '';
+                            const defaultOpt = document.createElement('option');
+                            defaultOpt.text = "Selecciona un modelo...";
+                            defaultOpt.value = "";
+                            select.appendChild(defaultOpt);
+
+                            models.forEach(m => {
+                                const opt = document.createElement('option');
+                                opt.value = m.name;
+                                opt.text = m.displayName + (m.name.includes('exp') ? ' (Exp)' : '');
+                                if (savedModel && m.name === savedModel) {
+                                    opt.selected = true;
+                                    opt.text += " (Activo)";
+                                }
+                                select.appendChild(opt);
+                            });
+                        } catch (e) {
+                            console.error(e);
+                            select.innerHTML = '<option>Error de conexión</option>';
+                            showToast("Error al cargar modelos: " + e.message, "error");
+                        }
+                    }
+
+                    async function saveModelSelection(section = 'peinado') {
+                        let selectId = 'modelSelect';
+                        if (section === 'look') selectId = 'lookModelSelect';
+                        if (section === 'asesoria') selectId = 'asesoriaModelSelect';
+
+                        const select = document.getElementById(selectId);
+                        const modelName = select.value;
+                        if (!modelName) return showToast("Selecciona un modelo válido", "warning");
+
+                        try {
+                            const res = await fetch(`/api/mirror/keys?section=${section}`);
+                            const keys = await res.json();
+                            const activeKey = keys.find(k => k.provider === 'google' && k.is_active);
+                            if (!activeKey) return showToast(`No hay llave de Google activa para ${section}`, "error");
+
+                            const updateRes = await fetch(`/api/mirror/keys/${activeKey.id}/settings`, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ model: modelName })
+                            });
+                            if (updateRes.ok) {
+                                showToast(`Modelo actualizado a: ${modelName}`);
+                                // Refresh to show (Activo)
+                                fetchModels(section);
+                            } else {
+                                showToast("Error al guardar preferencia", "error");
+                            }
+                        } catch (e) {
+                            console.error(e);
+                            showToast("Error de conexión", "error");
+                        }
+                    }
+                    document.addEventListener('DOMContentLoaded', () => {
+                        // Load date selectors
+                        populateDates();
+
+                        // Load model lists for each section
+                        setTimeout(() => fetchModels('peinado'), 500);
+                        setTimeout(() => fetchModels('look'), 800);
+                        setTimeout(() => fetchModels('asesoria'), 1100);
+
+                        // Load stats
+                        setTimeout(() => fetchStats(), 300);
+
+                        // Load items (peinados/colores lists)
+                        setTimeout(() => fetchAdminItems(), 600);
+
+                        // CRITICAL: Load API keys (this was missing!)
+                        setTimeout(() => fetchApiKeys(), 400);
+                    });
+                </script>
+            </div>
+
             <!-- Protected Section 2: Cambio de Look Toggle -->
             <div id="lookLock"
                 class="bg-[#242636] p-4 rounded-lg border border-gray-700 mb-8 flex justify-between items-center cursor-pointer hover:bg-[#2a2d40] transition"
@@ -510,213 +717,6 @@
             </div>
         </div>
     </div>
-            <!-- Protected API Section Toggle -->
-            <!-- Protected Section 1: Peinado Toggle -->
-            <div id="peinadoLock"
-                class="bg-[#242636] p-4 rounded-lg border border-gray-700 mb-4 flex justify-between items-center cursor-pointer hover:bg-[#2a2d40] transition"
-                onclick="unlockSection('peinado')">
-                <div class="flex items-center gap-3">
-                    <div class="p-2 bg-gray-700 rounded text-gray-400">
-                        <i class="fas fa-lock"></i>
-                    </div>
-                    <div>
-                        <h4 class="text-gray-300 text-sm font-bold">Configuración de Peinado</h4>
-                        <p class="text-xs text-gray-500">Gestión de Llaves y Modelos AI</p>
-                    </div>
-                </div>
-                <i class="fas fa-chevron-right text-gray-500"></i>
-            </div>
-
-            <!-- Section 2.5: Configuración APIs (HIDDEN) -->
-            <!-- Section 1: Configuración de Peinado (HIDDEN) -->
-            <div id="peinadoSection"
-                class="hidden bg-[#242636] p-6 rounded-lg border border-gray-700 mb-8 relative overflow-hidden transition-all duration-500">
-                <div class="absolute top-0 right-0 p-4 opacity-10">
-                    <i class="fas fa-cut text-6xl text-[#FFD700]"></i>
-                </div>
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-[#FFD700] font-bold text-sm flex items-center gap-2">
-                        <i class="fas fa-cut"></i> Configuración de Peinado
-                    </h3>
-                    <button onclick="lockSection('peinado')" class="text-gray-500 hover:text-white text-xs">
-                        <i class="fas fa-eye-slash"></i> Ocultar
-                    </button>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <!-- Google Gemini Config -->
-                    <div class="bg-[#1a1b26] p-4 rounded border border-gray-600">
-                        <div class="flex justify-between items-center mb-4">
-                            <h4 class="text-white text-sm font-bold flex items-center gap-2">
-                                <i class="fab fa-google"></i> Google Gemini
-                            </h4>
-                            <button onclick="toggleKeyForm('google')"
-                                class="text-[10px] bg-[#FFD700] text-black px-2 py-1 rounded font-bold hover:bg-yellow-400">
-                                <i class="fas fa-plus"></i> Nueva Llave
-                            </button>
-                        </div>
-
-                        <!-- Add New Key Form -->
-                        <div id="googleAddForm" class="hidden mb-4 p-3 bg-[#0f1016] rounded border border-gray-700">
-                            <div class="flex flex-col gap-2">
-                                <input type="text" id="googleAliasInput" placeholder="Nombre (ej. Dev, Producción)"
-                                    class="bg-[#1a1b26] text-white text-xs border border-gray-600 rounded px-2 py-1 outline-none focus:border-[#FFD700]">
-                                <input type="password" id="googleKeyInput" placeholder="Pegar API Key..."
-                                    class="bg-[#1a1b26] text-white text-xs border border-gray-600 rounded px-2 py-1 outline-none focus:border-[#FFD700]">
-                                <div class="flex justify-end gap-2">
-                                    <button onclick="toggleKeyForm('google')"
-                                        class="text-gray-400 text-[10px] hover:text-white">Cancelar</button>
-                                    <button onclick="saveApiKey('google')"
-                                        class="bg-[#2E8B57] text-white px-2 py-1 rounded text-[10px]">Guardar</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Keys List -->
-                        <div id="googleKeysList" class="flex flex-col gap-2 max-h-40 overflow-y-auto pr-1">
-                            <div class="text-gray-500 text-[10px] text-center italic">Cargando llaves...</div>
-                        </div>
-                    </div>
-
-                    <!-- Model Selection Panel -->
-                    <div class="bg-[#1a1b26] p-4 rounded border border-gray-600 flex flex-col gap-4">
-                        <div class="flex justify-between items-center">
-                            <h4 class="text-white text-sm font-bold flex items-center gap-2">
-                                <i class="fas fa-brain"></i> Modelo Activo
-                            </h4>
-                            <button onclick="fetchModels()" title="Refrescar lista desde Google"
-                                class="text-gray-400 hover:text-[#FFD700] transition">
-                                <i class="fas fa-sync-alt text-xs"></i>
-                            </button>
-                        </div>
-
-                        <div class="relative">
-                            <select id="modelSelect"
-                                class="w-full bg-[#0f1016] text-white text-xs border border-gray-600 rounded px-3 py-2 outline-none focus:border-[#FFD700] appearance-none cursor-pointer">
-                                <option value="" disabled selected>Cargando modelos...</option>
-                            </select>
-                            <div class="absolute right-3 top-2 pointer-events-none text-gray-500">
-                                <i class="fas fa-chevron-down text-xs"></i>
-                            </div>
-                        </div>
-
-                        <button onclick="saveModelSelection()"
-                            class="w-full bg-[#CC8E35] hover:bg-[#b07b2e] text-white text-xs font-bold py-2 rounded transition shadow-lg">
-                            Guardar Preferencia
-                        </button>
-                    </div>
-                </div>
-
-                <script>
-                    async function fetchModels(section = 'peinado') {
-                        // Determine select ID based on section
-                        let selectId = 'modelSelect';
-                        if (section === 'look') selectId = 'lookModelSelect';
-                        if (section === 'asesoria') selectId = 'asesoriaModelSelect';
-
-                        const select = document.getElementById(selectId);
-                        if (!select) return; // Guard
-                        select.innerHTML = '<option>Cargando...</option>';
-
-                        try {
-                            const res = await fetch(`/api/mirror/models?section=${section}`);
-                            const models = await res.json();
-                            if (!res.ok) throw new Error(models.error || 'Error al cargar modelos');
-
-                            // Fetch active key for this section
-                            const keysRes = await fetch(`/api/mirror/keys?section=${section}`);
-                            const keys = await keysRes.json();
-                            const activeKey = (Array.isArray(keys) ? keys : []).find(k => k.provider === 'google' && k.is_active);
-
-                            // Parse settings JSON to get saved model
-                            let savedModel = null;
-                            if (activeKey && activeKey.settings) {
-                                try {
-                                    const settings = typeof activeKey.settings === 'string'
-                                        ? JSON.parse(activeKey.settings)
-                                        : activeKey.settings;
-                                    savedModel = settings.model || null;
-                                } catch (e) {
-                                    console.warn('Failed to parse settings:', e);
-                                }
-                            }
-
-                            select.innerHTML = '';
-                            const defaultOpt = document.createElement('option');
-                            defaultOpt.text = "Selecciona un modelo...";
-                            defaultOpt.value = "";
-                            select.appendChild(defaultOpt);
-
-                            models.forEach(m => {
-                                const opt = document.createElement('option');
-                                opt.value = m.name;
-                                opt.text = m.displayName + (m.name.includes('exp') ? ' (Exp)' : '');
-                                if (savedModel && m.name === savedModel) {
-                                    opt.selected = true;
-                                    opt.text += " (Activo)";
-                                }
-                                select.appendChild(opt);
-                            });
-                        } catch (e) {
-                            console.error(e);
-                            select.innerHTML = '<option>Error de conexión</option>';
-                            showToast("Error al cargar modelos: " + e.message, "error");
-                        }
-                    }
-
-                    async function saveModelSelection(section = 'peinado') {
-                        let selectId = 'modelSelect';
-                        if (section === 'look') selectId = 'lookModelSelect';
-                        if (section === 'asesoria') selectId = 'asesoriaModelSelect';
-
-                        const select = document.getElementById(selectId);
-                        const modelName = select.value;
-                        if (!modelName) return showToast("Selecciona un modelo válido", "warning");
-
-                        try {
-                            const res = await fetch(`/api/mirror/keys?section=${section}`);
-                            const keys = await res.json();
-                            const activeKey = keys.find(k => k.provider === 'google' && k.is_active);
-                            if (!activeKey) return showToast(`No hay llave de Google activa para ${section}`, "error");
-
-                            const updateRes = await fetch(`/api/mirror/keys/${activeKey.id}/settings`, {
-                                method: 'PUT',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ model: modelName })
-                            });
-                            if (updateRes.ok) {
-                                showToast(`Modelo actualizado a: ${modelName}`);
-                                // Refresh to show (Activo)
-                                fetchModels(section);
-                            } else {
-                                showToast("Error al guardar preferencia", "error");
-                            }
-                        } catch (e) {
-                            console.error(e);
-                            showToast("Error de conexión", "error");
-                        }
-                    }
-                    document.addEventListener('DOMContentLoaded', () => {
-                        // Load date selectors
-                        populateDates();
-
-                        // Load model lists for each section
-                        setTimeout(() => fetchModels('peinado'), 500);
-                        setTimeout(() => fetchModels('look'), 800);
-                        setTimeout(() => fetchModels('asesoria'), 1100);
-
-                        // Load stats
-                        setTimeout(() => fetchStats(), 300);
-
-                        // Load items (peinados/colores lists)
-                        setTimeout(() => fetchAdminItems(), 600);
-
-                        // CRITICAL: Load API keys (this was missing!)
-                        setTimeout(() => fetchApiKeys(), 400);
-                    });
-                </script>
-            </div>
-
 
     <!-- Password Modal -->
     <div id="passwordModal"
