@@ -34,9 +34,10 @@ const getGenerativeModel = async (fallbackModelName = 'gemini-2.0-flash-exp', se
     return genAI.getGenerativeModel({ model: selectedModel });
 };
 
-const generateImageDescription = async (prompt, imageBuffer, mimeType = 'image/png') => {
+const generateImageDescription = async (prompt, imageBuffer, mimeType = 'image/png', section = 'peinado') => {
     try {
-        const model = await getGenerativeModel('gemini-2.0-flash-exp');
+        // Pass section to getGenerativeModel to use the correct active model
+        const model = await getGenerativeModel('gemini-2.0-flash-exp', section);
         const imagePart = {
             inlineData: {
                 data: imageBuffer.toString('base64'),

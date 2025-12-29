@@ -122,11 +122,13 @@ router.post('/items', upload.single('file'), async (req, res) => {
                     }
 
                     // Use active model (handled by getGenerativeModel inside service) + system prompt
-                    const descResult = await generateImageDescription(sysPrompt, req.file.buffer, req.file.mimetype);
+                    // Explicitly pass 'peinado' section to ensure correct API key and model usage
+                    const descResult = await generateImageDescription(sysPrompt, req.file.buffer, req.file.mimetype, 'peinado');
                     finalPrompt = descResult.text;
                 } catch (err) {
                     console.error("Auto-prompt generation failed:", err);
-                    finalPrompt = 'Auto-prompt failed: ' + err.message;
+                    // Include more details in the error message for debugging
+                    finalPrompt = `Auto-prompt failed: ${err.message}`;
                 }
             }
         }
