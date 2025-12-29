@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "Node.js Re-implementation of the Mirror AI Backend",
   "main": "server.js",
-  "type": "module",
   "engines": {
     "node": ">=18.0.0"
   },
