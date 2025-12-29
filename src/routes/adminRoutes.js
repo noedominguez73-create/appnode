@@ -5,14 +5,8 @@ import { authenticateToken } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// Middleware: Require valid session. 
-// Note: In a stricter app we would check for role='admin' specifically.
-// For now, authenticateToken is a good baseline, and we assume Admin Dashboard is protected.
-router.use(authenticateToken); // Ensure user is logged in
-
-// DEBUG ROUTE: Verify ENV vars
+// DEBUG ROUTE: Verify ENV vars (Public for diagnostics)
 router.get('/debug/env', (req, res) => {
-    if (req.user.role !== 'admin') return res.status(403).json({ error: 'Admin only' });
     res.json({
         DB_DIALECT: process.env.DB_DIALECT || 'undefined',
         DB_HOST: process.env.DB_HOST || 'undefined',
@@ -22,6 +16,11 @@ router.get('/debug/env', (req, res) => {
         DB_PASS_SET: !!process.env.DB_PASS
     });
 });
+
+// Middleware: Require valid session. 
+// Note: In a stricter app we would check for role='admin' specifically.
+// For now, authenticateToken is a good baseline, and we assume Admin Dashboard is protected.
+router.use(authenticateToken); // Ensure user is logged in
 
 // GET /dashboard - Stats
 router.get('/dashboard', async (req, res) => {
