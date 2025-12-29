@@ -426,9 +426,22 @@
                         }
                     }
                     document.addEventListener('DOMContentLoaded', () => {
+                        // Load date selectors
+                        populateDates();
+
+                        // Load model lists for each section
                         setTimeout(() => fetchModels('peinado'), 500);
                         setTimeout(() => fetchModels('look'), 800);
                         setTimeout(() => fetchModels('asesoria'), 1100);
+
+                        // Load stats
+                        setTimeout(() => fetchStats(), 300);
+
+                        // Load items (peinados/colores lists)
+                        setTimeout(() => fetchAdminItems(), 600);
+
+                        // CRITICAL: Load API keys (this was missing!)
+                        setTimeout(() => fetchApiKeys(), 400);
                     });
                 </script>
             </div>
