@@ -4,7 +4,7 @@ const { authenticateToken } = require('../middleware/authMiddleware.js');
 const { saveUploadedFile } = require('../utils/fileUtils.js');
 const { SalonConfig, User, MirrorItem, MirrorUsage, ApiConfig } = require('../models/index.js');
 const { processGeneration } = require('../services/mirrorService.js');
-const { generateImageDescription, generateChatResponse, generateSpeech } = require('../services/geminiService.js');
+const { generateImageDescription, generateChatResponse, generateSpeech, listAvailableModels } = require('../services/geminiService.js');
 const { verifyToken } = require('../services/authService.js');
 
 const router = express.Router();
@@ -225,6 +225,17 @@ router.post('/tts', async (req, res) => {
         const { text, voice_style } = req.body;
         const audioContent = await generateSpeech(text, voice_style);
         res.json({ audioContent });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// List Models
+router.get('/models', async (req, res) => {
+    try {
+        const { section } = req.query;
+        const models = await listAvailableModels(section);
+        res.json(models);
     } catch (e) {
         res.status(500).json({ error: e.message });
     }

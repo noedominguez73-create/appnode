@@ -181,11 +181,41 @@ const generateChatResponse = async (userMessage, history = [], section = 'asesor
     }
 };
 
+const listAvailableModels = async (section = 'peinado') => {
+    try {
+        const { ApiConfig } = require('../models/index.js');
+        const config = await ApiConfig.findOne({ where: { provider: 'google', is_active: true, section } });
+        const apiKey = config?.api_key || process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
+
+        if (!apiKey) return [];
+
+        const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
+        const response = await fetch(url);
+
+        if (!response.ok) return [];
+
+        const data = await response.json();
+        if (!data.models) return [];
+
+        return data.models
+            .filter(m => m.supportedGenerationMethods && m.supportedGenerationMethods.includes('generateContent'))
+            .map(m => ({
+                name: m.name.replace('models/', ''),
+                displayName: m.displayName
+            }));
+    } catch (e) {
+        console.error("List Models Error:", e);
+        return [];
+    }
+};
+
 module.exports = {
     getApiKey,
     getGenerativeModel,
     generateImageDescription,
     generateImage,
     generateSpeech,
-    generateChatResponse
+    generateSpeech,
+    generateChatResponse,
+    listAvailableModels
 };
