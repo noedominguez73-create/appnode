@@ -61,6 +61,9 @@ const sequelize = new Sequelize(
 
         // MySQL-specific options
         dialectOptions: {
+            // FORCE IPv4 (prevents Node.js from using ::1 instead of 127.0.0.1)
+            family: 4,
+
             connectTimeout: 10000,  // 10 seconds timeout
 
             // SSL Configuration (disabled for local/Hostinger shared)
