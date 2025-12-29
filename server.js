@@ -65,6 +65,7 @@ try {
     console.error("Diagnostic Check Failed:", e);
 }
 
+/*
 sequelize.sync({ alter: true }).then(async () => {
     console.log('Database synced successfully.');
 
@@ -104,6 +105,7 @@ sequelize.sync({ alter: true }).then(async () => {
 }).catch((err) => {
     console.error('Failed to sync database:', err);
 });
+*/
 
 // Routes
 setupRoutes(app);
