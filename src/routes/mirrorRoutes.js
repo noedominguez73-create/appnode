@@ -109,10 +109,24 @@ router.post('/items', upload.single('file'), async (req, res) => {
             image_url = saved.url;
             if (!finalPrompt) {
                 try {
-                    const descResult = await generateImageDescription("Describe this hairstyle", req.file.buffer, req.file.mimetype);
+                    // Get system prompt based on category
+                    const config = await SalonConfig.findOne({ where: { user_id: 1 } });
+                    let sysPrompt = "Describe this hairstyle in detail suitable for an AI generator."; // Fallback
+
+                    if (config) {
+                        if (category === 'hairstyle' && config.hairstyle_sys_prompt) {
+                            sysPrompt = config.hairstyle_sys_prompt;
+                        } else if (category === 'color' && config.color_sys_prompt) {
+                            sysPrompt = config.color_sys_prompt;
+                        }
+                    }
+
+                    // Use active model (handled by getGenerativeModel inside service) + system prompt
+                    const descResult = await generateImageDescription(sysPrompt, req.file.buffer, req.file.mimetype);
                     finalPrompt = descResult.text;
                 } catch (err) {
-                    finalPrompt = 'Auto-prompt failed';
+                    console.error("Auto-prompt generation failed:", err);
+                    finalPrompt = 'Auto-prompt failed: ' + err.message;
                 }
             }
         }
@@ -134,6 +148,60 @@ router.put('/items/:id', async (req, res) => {
         await item.update(req.body);
         res.json(item);
     } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Generate AI prompt for existing item
+router.post('/items/:id/generate-prompt', async (req, res) => {
+    try {
+        const item = await MirrorItem.findByPk(req.params.id);
+        if (!item) return res.status(404).json({ error: 'Item not found' });
+
+        // Get system prompt
+        const config = await SalonConfig.findOne({ where: { user_id: 1 } });
+        if (!config) return res.status(404).json({ error: 'Config not found' });
+
+        const systemPrompt = item.category === 'hairstyle'
+            ? config.hairstyle_sys_prompt : config.color_sys_prompt;
+
+        if (!systemPrompt) {
+            return res.status(400).json({ error: `No system prompt for ${item.category}` });
+        }
+
+        // Get active model
+        const apiConfig = await ApiConfig.findOne({
+            where: { section: 'peinado', is_active: true, provider: 'google' }
+        });
+
+        if (!apiConfig?.api_key) {
+            return res.status(400).json({ error: 'No active API key' });
+        }
+
+        let modelName = 'gemini-2.0-flash-exp';
+        if (apiConfig.settings) {
+            try {
+                const settings = typeof apiConfig.settings === 'string'
+                    ? JSON.parse(apiConfig.settings) : apiConfig.settings;
+                modelName = settings.model || modelName;
+            } catch (e) { }
+        }
+
+        // Call Gemini
+        const { GoogleGenerativeAI } = require('@google/generative-ai');
+        const genAI = new GoogleGenerativeAI(apiConfig.api_key);
+        const model = genAI.getGenerativeModel({ model: modelName });
+
+        const fullPrompt = `${systemPrompt}\n\nGenera descripción profesional para: "${item.name}"`;
+        const result = await model.generateContent(fullPrompt);
+        const generatedText = result.response.text();
+
+        // Update item
+        await item.update({ prompt: generatedText });
+
+        res.json({ success: true, prompt: generatedText, model_used: modelName });
+    } catch (e) {
+        console.error('Generate prompt error:', e);
         res.status(500).json({ error: e.message });
     }
 });
