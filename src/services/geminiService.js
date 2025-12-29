@@ -232,13 +232,99 @@ const listAvailableModels = async (section = 'peinado') => {
     }
 };
 
+/**
+ * Generate text prompt and preview image using AI
+ * @param {string} systemPrompt - Base system prompt (hairstyle_sys_prompt or color_sys_prompt)
+ * @param {string} category - 'hairstyle' or 'color'
+ * @param {string} section - section name for API key lookup
+ * @returns {Promise<{text: string, imageData: string|null, modelUsed: string}>}
+ */
+const generateTextAndImage = async (systemPrompt, category, section = 'peinado') => {
+    const { ApiConfig } = require('../models/index.js');
+    const { saveGeneratedImage } = require('../utils/fileUtils.js');
+
+    // Get active API config for section
+    const apiConfig = await ApiConfig.findOne({
+        where: { section, is_active: true, provider: 'google' }
+    });
+
+    if (!apiConfig || !apiConfig.api_key) {
+        throw new Error('No active API key configured for this section');
+    }
+
+    // Parse settings to get model
+    let modelName = 'gemini-2.0-flash-exp'; // fallback
+    if (apiConfig.settings) {
+        try {
+            const settings = typeof apiConfig.settings === 'string'
+                ? JSON.parse(apiConfig.settings)
+                : apiConfig.settings;
+            if (settings.model) {
+                modelName = settings.model;
+            }
+        } catch (e) {
+            console.warn('Failed to parse settings, using fallback model');
+        }
+    }
+
+    console.log(`Generating with model: ${modelName} (Section: ${section})`);
+
+    const genAI = new GoogleGenerativeAI(apiConfig.api_key);
+    const model = genAI.getGenerativeModel({ model: modelName });
+
+    // Build prompt
+    const itemType = category === 'hairstyle' ? 'un peinado profesional' : 'un tono de color de cabello';
+    const fullPrompt = `${systemPrompt}\n\nGenera una descripción breve y profesional para ${itemType}. La descripción debe ser clara, técnica y atractiva para un salón de belleza.`;
+
+    // Generate text
+    const result = await model.generateContent(fullPrompt);
+    const response = await result.response;
+    const generatedText = response.text();
+
+    // Try to generate preview image if model supports it
+    let imageUrl = null;
+    try {
+        // Use imagen model for actual image generation
+        const imageModel = genAI.getGenerativeModel({
+            model: 'imagen-3.0-generate-001'
+        });
+
+        const imagePrompt = `Professional ${category === 'hairstyle' ? 'hairstyle' : 'hair color'}: ${generatedText}. Studio quality, clean background, professional beauty salon style.`;
+
+        const imageResult = await imageModel.generateContent(imagePrompt);
+        const imageResponse = await imageResult.response;
+
+        // Extract image from response
+        if (imageResponse.candidates && imageResponse.candidates[0]) {
+            const parts = imageResponse.candidates[0].content.parts;
+            for (const part of parts) {
+                if (part.inlineData && part.inlineData.data) {
+                    const buffer = Buffer.from(part.inlineData.data, 'base64');
+                    const filename = `preview_${category}_${Date.now()}.jpg`;
+                    imageUrl = saveGeneratedImage(buffer, filename);
+                    break;
+                }
+            }
+        }
+    } catch (imgError) {
+        console.warn('Image generation failed, returning text only:', imgError.message);
+        // Continue without image - not critical
+    }
+
+    return {
+        text: generatedText,
+        imageUrl,
+        modelUsed: modelName
+    };
+};
+
 module.exports = {
     getApiKey,
     getGenerativeModel,
     generateImageDescription,
     generateImage,
     generateSpeech,
-    generateSpeech,
     generateChatResponse,
-    listAvailableModels
+    listAvailableModels,
+    generateTextAndImage
 };

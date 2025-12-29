@@ -262,6 +262,47 @@ router.post('/tts', async (req, res) => {
     }
 });
 
+// Generate AI prompt (NEW)
+router.post('/generate-prompt', async (req, res) => {
+    try {
+        const { category, section = 'peinado' } = req.body;
+
+        if (!category || !['hairstyle', 'color'].includes(category)) {
+            return res.status(400).json({ error: 'Invalid category. Must be "hairstyle" or "color"' });
+        }
+
+        // Get system prompt from config
+        const config = await SalonConfig.findOne({ where: { user_id: 1 } });
+        if (!config) {
+            return res.status(404).json({ error: 'System configuration not found' });
+        }
+
+        const systemPrompt = category === 'hairstyle'
+            ? config.hairstyle_sys_prompt
+            : config.color_sys_prompt;
+
+        if (!systemPrompt) {
+            return res.status(400).json({
+                error: `System prompt not configured for ${category}`
+            });
+        }
+
+        // Generate text and image
+        const { generateTextAndImage } = require('../services/geminiService.js');
+        const result = await generateTextAndImage(systemPrompt, category, section);
+
+        res.json({
+            generated_prompt: result.text,
+            preview_image_url: result.imageUrl || null,
+            model_used: result.modelUsed
+        });
+
+    } catch (e) {
+        console.error('Generate prompt error:', e);
+        res.status(500).json({ error: e.message });
+    }
+});
+
 // List Models
 router.get('/models', async (req, res) => {
     try {

@@ -171,9 +171,38 @@
                     </div>
                 </div>
 
+                <!-- AI Prompt Generation Section -->
+                <div class="mb-4">
+                    <div class="flex gap-2 mb-2">
+                        <button onclick="generateAIPrompt()" type="button"
+                            class="bg-[#FFD700] hover:bg-yellow-400 text-black text-xs px-3 py-2 rounded transition flex items-center gap-2 font-bold shadow">
+                            <i class="fas fa-robot"></i> Generar con IA
+                        </button>
+                        <span class="text-gray-500 text-xs flex items-center italic">Usa el modelo activo
+                            configurado</span>
+                    </div>
+
+                    <textarea id="newItemPrompt" rows="3"
+                        placeholder="Descripción generada por IA (o escribe manualmente)"
+                        class="w-full bg-[#3d4052] text-gray-300 border-none rounded p-2 text-sm placeholder-gray-500"></textarea>
+
+                    <!-- AI Preview Container -->
+                    <div id="aiPreview" class="hidden mt-3 p-4 bg-[#1a1b26] rounded-lg border border-[#FFD700]">
+                        <div class="flex gap-4">
+                            <img id="previewImage" class="w-24 h-24 rounded object-cover" alt="Preview" />
+                            <div class="flex-1">
+                                <p class="text-[#FFD700] text-xs font-bold mb-2 flex items-center gap-2">
+                                    <i class="fas fa-sparkles"></i> Preview Generado por IA
+                                </p>
+                                <p id="previewText" class="text-gray-300 text-xs leading-relaxed"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="flex items-center gap-2 mb-4">
                     <input type="file" id="newItemFile" class="hidden" accept="image/*" onchange="updateFileName(this)">
-                    <button onclick="document.getElementById('newItemFile').click()"
+                    <button onclick="document.getElementById('newItemFile').click()" type="button"
                         class="bg-[#CC8E35] text-white text-xs px-3 py-2 rounded hover:bg-[#b07b2e] transition">Seleccionar
                         archivo</button>
                     <span id="fileNameDisplay" class="text-gray-500 text-xs italic">Ningún archivo seleccionado</span>
@@ -966,6 +995,50 @@
 
         // Renamed 'renderKeysList' to be specific, removing old one.
 
+        // --- AI Prompt Generation ---
+        async function generateAIPrompt() {
+            const category = document.getElementById('newItemCategory').value;
+            const previewContainer = document.getElementById('aiPreview');
+
+            try {
+                showToast("🤖 Generando con IA...", "info");
+
+                const res = await fetch('/api/mirror/generate-prompt', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        category,
+                        section: 'peinado'
+                    })
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    throw new Error(data.error || 'Error al generar');
+                }
+
+                // Fill prompt textarea
+                document.getElementById('newItemPrompt').value = data.generated_prompt;
+
+                // Show preview if image was generated
+                if (data.preview_image_url) {
+                    document.getElementById('previewImage').src = data.preview_image_url;
+                    document.getElementById('previewText').textContent = data.generated_prompt;
+                    previewContainer.classList.remove('hidden');
+                } else {
+                    previewContainer.classList.add('hidden');
+                }
+
+                showToast(`✨ Generado con ${data.model_used}`, "success");
+
+            } catch (e) {
+                console.error('AI Generation error:', e);
+                showToast("❌ Error: " + e.message, "error");
+            }
+        }
+
+        // --- API Key Management ---
         function toggleKeyForm(sectionOrProvider) {
             // 'google' (peinado) or 'look' (look section, assumes google)
             // Wait, UI passes 'google' for Peinado section (legacy), and 'look' for Look section
