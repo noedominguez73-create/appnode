@@ -553,64 +553,65 @@
                     </div>
                 </div>
 
-            </div>
+                <!-- 4 Containers for Look Prompts - INSIDE Look Container -->
+                <div class="mt-8 border-t border-gray-700 pt-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="text-[#00ff88] text-sm font-bold uppercase">Prompts de Transformación (Look)</h4>
+                        <div class="flex gap-2">
+                            <button id="unlockLookPromptsBtn" onclick="initUnlockLookPrompts()"
+                                class="bg-gray-700 hover:bg-gray-600 text-gray-300 text-xs px-3 py-1 rounded transition shadow flex items-center gap-1">
+                                <i class="fas fa-lock"></i> Desbloquear Estructura
+                            </button>
+                            <button id="saveLookPromptsBtn" onclick="saveLookPrompts()"
+                                class="bg-[#CC8E35] hover:bg-[#b07b2e] text-white text-xs px-3 py-1 rounded transition shadow flex items-center gap-1">
+                                <i class="fas fa-save"></i> Guardar Prompts
+                            </button>
+                        </div>
+                    </div>
 
-            <!-- 4 Containers for Look Prompts - MOVED HERE -->
-            <div class="mt-8 border-t border-gray-700 pt-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h4 class="text-[#00ff88] text-sm font-bold uppercase">Prompts de Transformación (Look)</h4>
-                    <div class="flex gap-2">
-                        <button id="unlockLookPromptsBtn" onclick="initUnlockLookPrompts()"
-                            class="bg-gray-700 hover:bg-gray-600 text-gray-300 text-xs px-3 py-1 rounded transition shadow flex items-center gap-1">
-                            <i class="fas fa-lock"></i> Desbloquear Estructura
-                        </button>
-                        <button id="saveLookPromptsBtn" onclick="saveLookPrompts()"
-                            class="bg-[#CC8E35] hover:bg-[#b07b2e] text-white text-xs px-3 py-1 rounded transition shadow flex items-center gap-1">
-                            <i class="fas fa-save"></i> Guardar Prompts
-                        </button>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- P1 (Locked) -->
+                        <div class="flex flex-col gap-1">
+                            <div class="flex justify-between">
+                                <label class="text-gray-500 text-[10px] font-bold">P CARA <i
+                                        class="fas fa-lock text-[8px] ml-1"></i></label>
+                            </div>
+                            <textarea id="lookPrompt1" rows="6" disabled
+                                class="w-full bg-[#15161c] text-gray-500 text-xs border border-gray-800 rounded p-3 outline-none cursor-not-allowed custom-scrollbar opacity-70"
+                                placeholder="Prompt para cara..."></textarea>
+                        </div>
+
+                        <!-- P2 (Editable) -->
+                        <div class="flex flex-col gap-1">
+                            <label class="text-[#00ff88] text-[10px] font-bold">P PEINADOS</label>
+                            <textarea id="lookPrompt2" rows="6"
+                                class="w-full bg-[#1a1b26] text-gray-300 text-xs border border-gray-600 rounded p-3 outline-none focus:border-[#00ff88] custom-scrollbar"
+                                placeholder="Prompt para peinados..."></textarea>
+                        </div>
+
+                        <!-- P3 (Editable) -->
+                        <div class="flex flex-col gap-1">
+                            <label class="text-[#00ff88] text-[10px] font-bold">P COLORES</label>
+                            <textarea id="lookPrompt3" rows="6"
+                                class="w-full bg-[#1a1b26] text-gray-300 text-xs border border-gray-600 rounded p-3 outline-none focus:border-[#00ff88] custom-scrollbar"
+                                placeholder="Prompt para colores..."></textarea>
+                        </div>
+
+                        <!-- P4 (Locked) -->
+                        <div class="flex flex-col gap-1">
+                            <div class="flex justify-between">
+                                <label class="text-gray-500 text-[10px] font-bold">COMBINACIÓN <i
+                                        class="fas fa-lock text-[8px] ml-1"></i></label>
+                            </div>
+                            <textarea id="lookPrompt4" rows="6" disabled
+                                class="w-full bg-[#15161c] text-gray-500 text-xs border border-gray-800 rounded p-3 outline-none cursor-not-allowed custom-scrollbar opacity-70"
+                                placeholder="Prompt de combinación..."></textarea>
+                        </div>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- P1 (Locked) -->
-                    <div class="flex flex-col gap-1">
-                        <div class="flex justify-between">
-                            <label class="text-gray-500 text-[10px] font-bold">P CARA <i
-                                    class="fas fa-lock text-[8px] ml-1"></i></label>
-                        </div>
-                        <textarea id="lookPrompt1" rows="6" disabled
-                            class="w-full bg-[#15161c] text-gray-500 text-xs border border-gray-800 rounded p-3 outline-none cursor-not-allowed custom-scrollbar opacity-70"
-                            placeholder="Prompt para cara..."></textarea>
-                    </div>
-
-                    <!-- P2 (Editable) -->
-                    <div class="flex flex-col gap-1">
-                        <label class="text-[#00ff88] text-[10px] font-bold">P PEINADOS</label>
-                        <textarea id="lookPrompt2" rows="6"
-                            class="w-full bg-[#1a1b26] text-gray-300 text-xs border border-gray-600 rounded p-3 outline-none focus:border-[#00ff88] custom-scrollbar"
-                            placeholder="Prompt para peinados..."></textarea>
-                    </div>
-
-                    <!-- P3 (Editable) -->
-                    <div class="flex flex-col gap-1">
-                        <label class="text-[#00ff88] text-[10px] font-bold">P COLORES</label>
-                        <textarea id="lookPrompt3" rows="6"
-                            class="w-full bg-[#1a1b26] text-gray-300 text-xs border border-gray-600 rounded p-3 outline-none focus:border-[#00ff88] custom-scrollbar"
-                            placeholder="Prompt para colores..."></textarea>
-                    </div>
-
-                    <!-- P4 (Locked) -->
-                    <div class="flex flex-col gap-1">
-                        <div class="flex justify-between">
-                            <label class="text-gray-500 text-[10px] font-bold">COMBINACIÓN <i
-                                    class="fas fa-lock text-[8px] ml-1"></i></label>
-                        </div>
-                        <textarea id="lookPrompt4" rows="6" disabled
-                            class="w-full bg-[#15161c] text-gray-500 text-xs border border-gray-800 rounded p-3 outline-none cursor-not-allowed custom-scrollbar opacity-70"
-                            placeholder="Prompt de combinación..."></textarea>
-                    </div>
-                </div>
             </div>
+
 
         </div>
     </div>
