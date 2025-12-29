@@ -183,28 +183,50 @@ const generateChatResponse = async (userMessage, history = [], section = 'asesor
 
 const listAvailableModels = async (section = 'peinado') => {
     try {
+        console.log(`📋 Fetching models for section: ${section}`);
         const { ApiConfig } = require('../models/index.js');
         const config = await ApiConfig.findOne({ where: { provider: 'google', is_active: true, section } });
+
+        console.log(`🔑 Active API Config found:`, config ? 'YES' : 'NO');
+
         const apiKey = config?.api_key || process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
 
-        if (!apiKey) return [];
+        if (!apiKey) {
+            console.error(`❌ No API key available for section: ${section}`);
+            return [];
+        }
+
+        console.log(`✅ API Key available: ${apiKey.substring(0, 10)}...`);
 
         const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
+        console.log(`🌐 Fetching models from Google API...`);
         const response = await fetch(url);
 
-        if (!response.ok) return [];
+        if (!response.ok) {
+            console.error(`❌ Google API returned status: ${response.status}`);
+            const errorText = await response.text();
+            console.error(`Error response:`, errorText);
+            return [];
+        }
 
         const data = await response.json();
-        if (!data.models) return [];
+        if (!data.models) {
+            console.error(`❌ No models in API response`);
+            return [];
+        }
 
-        return data.models
+        const filteredModels = data.models
             .filter(m => m.supportedGenerationMethods && m.supportedGenerationMethods.includes('generateContent'))
             .map(m => ({
                 name: m.name.replace('models/', ''),
                 displayName: m.displayName
             }));
+
+        console.log(`✅ Found ${filteredModels.length} compatible models`);
+        return filteredModels;
     } catch (e) {
-        console.error("List Models Error:", e);
+        console.error("❌ List Models Error:", e.message);
+        console.error(e.stack);
         return [];
     }
 };
