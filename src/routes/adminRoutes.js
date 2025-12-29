@@ -10,6 +10,19 @@ const router = express.Router();
 // For now, authenticateToken is a good baseline, and we assume Admin Dashboard is protected.
 router.use(authenticateToken); // Ensure user is logged in
 
+// DEBUG ROUTE: Verify ENV vars
+router.get('/debug/env', (req, res) => {
+    if (req.user.role !== 'admin') return res.status(403).json({ error: 'Admin only' });
+    res.json({
+        DB_DIALECT: process.env.DB_DIALECT || 'undefined',
+        DB_HOST: process.env.DB_HOST || 'undefined',
+        DB_USER: process.env.DB_USER || 'undefined',
+        DB_NAME: process.env.DB_NAME || 'undefined',
+        // Hide password part
+        DB_PASS_SET: !!process.env.DB_PASS
+    });
+});
+
 // GET /dashboard - Stats
 router.get('/dashboard', async (req, res) => {
     try {

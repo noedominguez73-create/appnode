@@ -13,6 +13,11 @@ const dbPath = process.env.DATABASE_URL ?
     path.resolve(__dirname, '../../database/mirror.db');
 
 console.log("Database Path resolved to:", dbPath);
+console.log("-----------------------------------------");
+console.log("DEBUG: DB_DIALECT is:", process.env.DB_DIALECT);
+console.log("DEBUG: DB_HOST is:", process.env.DB_HOST);
+console.log("DEBUG: DB_USER is:", process.env.DB_USER);
+console.log("-----------------------------------------");
 
 // Ensure directory exists
 import fs from 'fs';
