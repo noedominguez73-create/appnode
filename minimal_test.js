@@ -1,4 +1,4 @@
-const http = require('http');
+import http from 'http';
 
 // Hardcoded check for environment port or default to 3000
 const PORT = process.env.PORT || 3000;
