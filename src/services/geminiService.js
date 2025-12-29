@@ -261,6 +261,17 @@ const listAvailableModels = async (section = 'peinado') => {
                 displayName: m.displayName || m.name
             }));
 
+        // Ensure Gemini 1.5 Flash is always present (as requested by user)
+        const flashModelName = 'gemini-1.5-flash';
+        const hasFlash = compatibleModels.some(m => m.name === flashModelName);
+
+        if (!hasFlash) {
+            compatibleModels.unshift({
+                name: flashModelName,
+                displayName: 'Gemini 1.5 Flash (Recommended/Fast)'
+            });
+        }
+
         console.log(`✅ Loaded ${compatibleModels.length} models for ${section}`);
         return compatibleModels;
 
