@@ -32,6 +32,24 @@ app.get('/health', (req, res) => {
     });
 });
 
+// TEMP: Database Configuration Debug Endpoint
+app.get('/debug-db', (req, res) => {
+    const dbConfig = require('./src/config/database.js');
+    res.json({
+        message: 'Database Configuration (Diagnostic)',
+        config: {
+            host: sequelize.config.host,
+            port: sequelize.config.port,
+            database: sequelize.config.database,
+            username: sequelize.config.username,
+            password_set: !!sequelize.config.password,
+            password_length: sequelize.config.password?.length || 0,
+            dialect: sequelize.config.dialect
+        },
+        status: global.DB_STATUS
+    });
+});
+
 // Setup API Routes
 setupRoutes(app);
 
