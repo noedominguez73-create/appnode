@@ -19,12 +19,16 @@ console.log("DEBUG: DB_HOST is:", process.env.DB_HOST);
 console.log("DEBUG: DB_USER is:", process.env.DB_USER);
 console.log("-----------------------------------------");
 
-// Ensure directory exists
-import fs from 'fs';
-const dbDir = path.dirname(dbPath);
-if (!fs.existsSync(dbDir)) {
-    console.log("Creating directory:", dbDir);
-    fs.mkdirSync(dbDir, { recursive: true });
+// Ensure directory exists - WRAPPED TO PREVENT CRASH ON IMPORT
+try {
+    const dbDir = path.dirname(dbPath);
+    if (!fs.existsSync(dbDir)) {
+        console.log("Creating directory:", dbDir);
+        fs.mkdirSync(dbDir, { recursive: true });
+    }
+} catch (fsError) {
+    console.error("⚠️ WARNING: Could not create DB directory on import. likely permission issue.", fsError.message);
+    // Do not throw, allow the app to continue importing
 }
 
 export const sequelize = new Sequelize(
