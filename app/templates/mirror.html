@@ -542,6 +542,46 @@
 </head>
 
 <body>
+    <!-- ============ MANDATORY LOGIN CHECK ============ -->
+    <script>
+        (function () {
+            const token = localStorage.getItem('asesoriaimss_token');
+            const user = localStorage.getItem('asesoriaimss_user');
+
+            if (!token || !user) {
+                console.warn('⚠️ No authenticated session found. Redirecting to login...');
+                window.location.href = '/login?redirect=/mirror';
+                return;
+            }
+
+            // Validate token format (basic check)
+            try {
+                const parts = token.split('.');
+                if (parts.length !== 3) {
+                    throw new Error('Invalid token format');
+                }
+                const payload = JSON.parse(atob(parts[1]));
+
+                // Check if token is expired
+                if (payload.exp && Date.now() >= payload.exp * 1000) {
+                    console.warn('⚠️ Token expired. Redirecting to login...');
+                    localStorage.removeItem('asesoriaimss_token');
+                    localStorage.removeItem('asesoriaimss_user');
+                    window.location.href = '/login?redirect=/mirror';
+                    return;
+                }
+
+                console.log('✅ Authenticated as:', payload.email || payload.full_name);
+            } catch (e) {
+                console.error('❌ Invalid token:', e.message);
+                localStorage.removeItem('asesoriaimss_token');
+                localStorage.removeItem('asesoriaimss_user');
+                window.location.href = '/login?redirect=/mirror';
+                return;
+            }
+        })();
+    </script>
+
     <div class="background-network"></div>
 
     <a href="/mis-finanzas" id="navBackBtn" class="nav-link nav-back">
@@ -1442,7 +1482,7 @@
                 transition: all 0.3s;
             `;
 
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('asesoriaimss_token');
             let userInfo = { status: '❌ No Session', user: 'Anonymous', id: null, role: null };
 
             if (token) {

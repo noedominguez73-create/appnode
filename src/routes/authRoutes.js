@@ -95,6 +95,9 @@ router.get('/me', authenticateToken, async (req, res) => {
     res.json(user);
 });
 
+// DISABLED: Guest auto-login removed for security
+// router.post('/guest', async (req, res) => { ... });
+/*
 router.post('/guest', async (req, res) => {
     try {
         let guest = await User.findOne({ where: { email: 'guest@imagina.ia' } });
@@ -126,6 +129,7 @@ router.post('/guest', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+*/
 
 router.get('/fix-all-access', async (req, res) => {
     try {
