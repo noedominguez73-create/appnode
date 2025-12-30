@@ -1,6 +1,7 @@
 const express = require('express');
 const multer = require('multer');
 const { authenticateToken } = require('../middleware/authMiddleware.js');
+const { getOrganizationId } = require('../middleware/organizationMiddleware.js');
 const { saveUploadedFile } = require('../utils/fileUtils.js');
 const { SalonConfig, User, MirrorItem, MirrorUsage, ApiConfig } = require('../models/index.js');
 const { processGeneration } = require('../services/mirrorService.js');
@@ -90,6 +91,28 @@ router.get('/items', async (req, res) => {
     try {
         const { category } = req.query;
         const where = { is_active: true };
+
+        // Multi-tenant: filter by organization
+        const authHeader = req.headers['authorization'];
+        if (authHeader) {
+            try {
+                const token = authHeader.split(' ')[1];
+                const user = verifyToken(token);
+                if (user) {
+                    const userRecord = await User.findByPk(user.user_id);
+                    if (userRecord && userRecord.organization_id) {
+                        where.organization_id = userRecord.organization_id;
+                    } else {
+                        where.organization_id = 1; // Default: Demo Salon
+                    }
+                }
+            } catch (e) {
+                where.organization_id = 1; // Fallback
+            }
+        } else {
+            where.organization_id = 1; // Public access defaults to Demo Salon
+        }
+
         if (category) where.category = category;
         const items = await MirrorItem.findAll({ where, order: [['order_index', 'ASC']] });
         res.json(items);
