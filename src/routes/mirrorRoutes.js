@@ -15,16 +15,31 @@ const upload = multer({ storage: multer.memoryStorage() });
 router.get('/config', async (req, res) => {
     try {
         let userId = 1;
+        let organizationId = 1;
+
         const authHeader = req.headers['authorization'];
         if (authHeader) {
             const token = authHeader.split(' ')[1];
             try {
                 const user = verifyToken(token);
-                if (user) userId = user.user_id;
+                if (user) {
+                    userId = user.user_id;
+                    const userRecord = await User.findByPk(userId);
+                    if (userRecord && userRecord.organization_id) {
+                        organizationId = userRecord.organization_id;
+                    }
+                }
             } catch (e) { }
         }
 
-        const config = await SalonConfig.findOne({ where: { user_id: userId } });
+        // Multi-tenant: get config for user's organization
+        const config = await SalonConfig.findOne({
+            where: {
+                user_id: userId,
+                organization_id: organizationId
+            }
+        });
+
         if (!config) {
             return res.json({
                 primary_color: '#00ff88',
@@ -41,19 +56,37 @@ router.get('/config', async (req, res) => {
 router.post('/config', async (req, res) => {
     try {
         let userId = 1;
+        let organizationId = 1;
+
         const authHeader = req.headers['authorization'];
         if (authHeader) {
             const token = authHeader.split(' ')[1];
             try {
                 const user = verifyToken(token);
-                if (user) userId = user.user_id;
+                if (user) {
+                    userId = user.user_id;
+                    const userRecord = await User.findByPk(userId);
+                    if (userRecord && userRecord.organization_id) {
+                        organizationId = userRecord.organization_id;
+                    }
+                }
             } catch (e) { }
         }
 
         const data = req.body;
-        let config = await SalonConfig.findOne({ where: { user_id: userId } });
+        let config = await SalonConfig.findOne({
+            where: {
+                user_id: userId,
+                organization_id: organizationId
+            }
+        });
+
         if (!config) {
-            config = await SalonConfig.create({ user_id: userId, ...data });
+            config = await SalonConfig.create({
+                user_id: userId,
+                organization_id: organizationId,
+                ...data
+            });
         } else {
             await config.update(data);
         }
@@ -66,8 +99,35 @@ router.post('/config', async (req, res) => {
 // Stats
 router.get('/stats', async (req, res) => {
     try {
-        const generations = await MirrorUsage.count({ where: { usage_type: 'generation' } });
-        const totalTokens = await MirrorUsage.sum('total_tokens') || 0;
+        let organizationId = 1;
+
+        // Extract organization from auth token
+        const authHeader = req.headers['authorization'];
+        if (authHeader) {
+            try {
+                const token = authHeader.split(' ')[1];
+                const user = verifyToken(token);
+                if (user) {
+                    const userRecord = await User.findByPk(user.user_id);
+                    if (userRecord && userRecord.organization_id) {
+                        organizationId = userRecord.organization_id;
+                    }
+                }
+            } catch (e) { }
+        }
+
+        // Multi-tenant: filter stats by organization
+        const generations = await MirrorUsage.count({
+            where: {
+                usage_type: 'generation',
+                organization_id: organizationId
+            }
+        });
+
+        const totalTokens = await MirrorUsage.sum('total_tokens', {
+            where: { organization_id: organizationId }
+        }) || 0;
+
         res.json({ generations, total_tokens: totalTokens });
     } catch (e) {
         res.status(500).json({ error: e.message });
@@ -126,14 +186,35 @@ router.post('/items', upload.single('file'), async (req, res) => {
         const { name, category, order_index, prompt, color_code } = req.body;
         let image_url = '';
         let finalPrompt = prompt || '';
+        let organizationId = 1; // Default
+
+        // Extract organization from auth header
+        const authHeader = req.headers['authorization'];
+        if (authHeader) {
+            try {
+                const token = authHeader.split(' ')[1];
+                const user = verifyToken(token);
+                if (user) {
+                    const userRecord = await User.findByPk(user.user_id);
+                    if (userRecord && userRecord.organization_id) {
+                        organizationId = userRecord.organization_id;
+                    }
+                }
+            } catch (e) { }
+        }
 
         if (req.file) {
             const saved = saveUploadedFile(req.file, 'items');
             image_url = saved.url;
             if (!finalPrompt) {
                 try {
-                    // Get system prompt based on category
-                    const config = await SalonConfig.findOne({ where: { user_id: 1 } });
+                    // Get system prompt based on category (filtered by org)
+                    const config = await SalonConfig.findOne({
+                        where: {
+                            user_id: 1,
+                            organization_id: organizationId
+                        }
+                    });
                     let sysPrompt = "Describe this hairstyle in detail suitable for an AI generator."; // Fallback
 
                     if (config) {
@@ -156,9 +237,11 @@ router.post('/items', upload.single('file'), async (req, res) => {
             }
         }
 
+        // Multi-tenant: include organization_id when creating item
         const newItem = await MirrorItem.create({
             name, category, order_index: order_index || 0,
-            prompt: finalPrompt, color_code, image_url, is_active: true
+            prompt: finalPrompt, color_code, image_url, is_active: true,
+            organization_id: organizationId
         });
         res.json(newItem);
     } catch (e) {
