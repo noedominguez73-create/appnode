@@ -269,35 +269,55 @@
                         return;
                     }
 
-                    // Smart Role Validation
+                    // Smart Role Validation - FIXED FOR MULTI-TENANT
                     let isValidRole = false;
                     if (selectedRole === 'salon') {
-                        // Expecting a user role BUT must be salon owner
-                        if (result.user.role === 'user' && result.user.is_salon_owner) {
+                        // Accept BOTH formats:
+                        // 1. New format: role === 'salon' 
+                        // 2. Legacy format: role === 'user' && is_salon_owner === true
+                        if (result.user.role === 'salon') {
+                            isValidRole = true;
+                        } else if (result.user.role === 'user' && result.user.is_salon_owner) {
                             isValidRole = true;
                         } else if (result.user.role === 'user' && !result.user.is_salon_owner) {
                             showToast('Esta cuenta es de Usuario normal, no de Salón.', 'warning');
                             isValidRole = false;
-                        } else {
+                        }
+                    } else if (selectedRole === 'professional') {
+                        if (result.user.role === 'professional') {
+                            isValidRole = true;
+                        }
+                    } else if (selectedRole === 'tienda') {
+                        if (result.user.role === 'tienda') {
+                            isValidRole = true;
+                        }
+                    } else if (selectedRole === 'user') {
+                        // Regular user (not salon)
+                        if (result.user.role === 'user' && !result.user.is_salon_owner) {
+                            isValidRole = true;
+                        } else if (result.user.role === 'user' && result.user.is_salon_owner) {
+                            showToast('Esta cuenta es de Salón. Por favor selecciona "Salón" arriba.', 'warning');
                             isValidRole = false;
-                        }
-                    } else {
-                        // Normal matching with flexibility
-                        // If attempting to log in as 'user' but account is 'professional', allow it?
-                        // Usually yes, a pro is also a user.
-                        if (selectedRole === 'user' && (result.user.role === 'user' || result.user.role === 'professional')) {
-                            isValidRole = true;
-                        } else {
-                            isValidRole = (result.user.role === selectedRole);
-                        }
-
-                        // Special case: Allow salon owners to log in as users without error
-                        if (selectedRole === 'user' && result.user.role === 'user') {
-                            isValidRole = true;
                         }
                     }
 
-                    if (!isValidRole) {
+                    if (isValidRole) {
+                        showToast('¡Bienvenido! Redirigiendo...', 'success');
+                        setTimeout(() => {
+                            const redirect = new URLSearchParams(window.location.search).get('redirect');
+                            if (redirect) {
+                                window.location.href = redirect;
+                            } else if (result.user.role === 'salon' || result.user.is_salon_owner) {
+                                window.location.href = '/mirror';
+                            } else if (result.user.role === 'professional') {
+                                window.location.href = '/dashboard-profesional';
+                            } else if (result.user.role === 'tienda') {
+                                window.location.href = '/dashboard-tienda';
+                            } else {
+                                window.location.href = '/mis-finanzas'; // Default landing for regular users
+                            }
+                        }, 500);
+                    } else {
                         showToast(`Esta cuenta es de tipo "${result.user.role}". Verifica tu selección.`, 'error');
                         submitBtn.disabled = false;
                         submitBtn.textContent = 'Iniciar Sesión';
@@ -305,22 +325,19 @@
                         logout();
                         return;
                     }
-
-                    const redirect = new URLSearchParams(window.location.search).get('redirect');
-                    if (redirect) {
-                        window.location.href = redirect;
-                    } else if (result.user.is_salon_owner) {
-                        window.location.href = '/mirror';
-                    } else if (result.user.role === 'professional') {
-                        window.location.href = '/dashboard-profesional';
-                    } else {
-                        window.location.href = '/mis-finanzas'; // Default landing
-                    }
+                    window.location.href = redirect;
+                } else if (result.user.is_salon_owner) {
+                    window.location.href = '/mirror';
+                } else if (result.user.role === 'professional') {
+                    window.location.href = '/dashboard-profesional';
                 } else {
-                    showToast(result.error || 'Credenciales inválidas', 'error');
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = 'Iniciar Sesión';
+                    window.location.href = '/mis-finanzas'; // Default landing
                 }
+            } else {
+                showToast(result.error || 'Credenciales inválidas', 'error');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Iniciar Sesión';
+        }
             });
         }
 
