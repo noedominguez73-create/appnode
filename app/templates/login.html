@@ -325,19 +325,11 @@
                         logout();
                         return;
                     }
-                    window.location.href = redirect;
-                } else if (result.user.is_salon_owner) {
-                    window.location.href = '/mirror';
-                } else if (result.user.role === 'professional') {
-                    window.location.href = '/dashboard-profesional';
                 } else {
-                    window.location.href = '/mis-finanzas'; // Default landing
+                    showToast(result.error || 'Credenciales inválidas', 'error');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Iniciar Sesión';
                 }
-            } else {
-                showToast(result.error || 'Credenciales inválidas', 'error');
-            submitBtn.disabled = false;
-            submitBtn.textContent = 'Iniciar Sesión';
-        }
             });
         }
 
